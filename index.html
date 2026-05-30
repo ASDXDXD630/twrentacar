@@ -176,6 +176,35 @@
 
   </div>
 
+  <!-- PWA App Launcher Modal (Action Sheet) -->
+  <div id="app-launcher-modal" class="modal-overlay">
+    <div class="modal-content glass-panel">
+      <div class="modal-header">
+        <h4 id="launcher-title">選擇租車方式</h4>
+        <button id="close-launcher-btn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="launcher-desc">由於手機系統限制，請選擇您要使用的方式：</p>
+        <div class="launcher-options">
+          <a id="launcher-link-web" href="#" target="_blank" class="launcher-opt-btn web-opt">
+            <i class="fa-solid fa-earth-asia"></i>
+            <div>
+              <strong>開啟官方網站 🌐</strong>
+              <span>進入官網，頂部會彈出「開啟 App」系統按鈕</span>
+            </div>
+          </a>
+          <a id="launcher-link-store" href="#" target="_blank" class="launcher-opt-btn store-opt">
+            <i class="fa-solid fa-store"></i>
+            <div>
+              <strong>前往 App 商店下載或開啟 📥</strong>
+              <span>已安裝者可直接點擊「開啟」啟動 App</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Leaflet JS (Local backup) -->
   <script src="lib/leaflet.js"></script>
   

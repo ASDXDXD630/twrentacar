@@ -974,3 +974,140 @@ body {
   color: var(--color-irent);
   box-shadow: 0 2px 8px var(--color-irent-glow);
 }
+
+/* ==========================================================================
+   PWA App Launcher Modal (Action Sheet)
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 19, 28, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end; /* Bottom slide-up style on mobile */
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 480px;
+  border-radius: 20px 20px 0 0; /* Rounded top corners like native iOS action sheets */
+  padding: 24px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-bottom: none;
+}
+
+.modal-overlay.active .modal-content {
+  transform: translateY(0);
+}
+
+@media (min-width: 768px) {
+  .modal-overlay {
+    align-items: center; /* Center on desktop */
+  }
+  .modal-content {
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 12px;
+}
+
+.modal-header h4 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 18px;
+  transition: var(--transition-smooth);
+}
+
+.close-btn:hover {
+  color: var(--text-primary);
+}
+
+.launcher-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.launcher-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.launcher-opt-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: var(--bg-dark-card);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: var(--transition-smooth);
+  text-align: left;
+}
+
+.launcher-opt-btn:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.03);
+  transform: translateY(-1px);
+}
+
+.launcher-opt-btn i {
+  font-size: 24px;
+}
+
+.launcher-opt-btn strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.launcher-opt-btn span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Specific option branding colors */
+.web-opt i {
+  color: var(--color-gosmart);
+}
+
+.store-opt i {
+  color: var(--color-nearby);
+}

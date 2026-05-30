@@ -729,36 +729,52 @@ document.addEventListener('DOMContentLoaded', () => {
   // Global App Launcher Redirection Logic
   window.triggerRentApp = function(brand) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    let scheme = '';
+    let webUrl = '';
     let storeUrl = '';
+    let brandName = '';
 
     if (brand === 'irent') {
-      scheme = 'easyrent://';
+      brandName = '和雲 iRent';
+      webUrl = 'https://www.easyrent.com.tw/irent/web/';
       storeUrl = isIOS 
         ? 'https://apps.apple.com/tw/app/irent/id929007421' 
         : 'https://play.google.com/store/apps/details?id=com.easyrent.easyrent';
     } else if (brand === 'gosmart') {
-      scheme = 'gosmart://';
+      brandName = '格上 GoSmart';
+      webUrl = 'https://www.car-plus.com.tw/';
       storeUrl = isIOS 
         ? 'https://apps.apple.com/tw/app/id1500552794' 
         : 'https://play.google.com/store/apps/details?id=com.carplus.gosmart';
     } else if (brand === 'uride') {
-      scheme = 'uride://';
+      brandName = '中租 URiDE';
+      webUrl = 'https://www.uride.com.tw/';
       storeUrl = isIOS 
         ? 'https://apps.apple.com/tw/app/uride/id6471373507' 
         : 'https://play.google.com/store/apps/details?id=tw.com.chailease.uride';
     }
 
-    // Try opening app directly, fallback to store if doesn't respond
-    const start = Date.now();
-    window.location.href = scheme;
-    
-    setTimeout(() => {
-      if (Date.now() - start < 1500) {
-        window.open(storeUrl, '_blank');
-      }
-    }, 1200);
+    // Set modal content and links
+    document.getElementById('launcher-title').textContent = `開啟 ${brandName}`;
+    const webLink = document.getElementById('launcher-link-web');
+    const storeLink = document.getElementById('launcher-link-store');
+
+    webLink.href = webUrl;
+    storeLink.href = storeUrl;
+
+    // Show modal
+    const modal = document.getElementById('app-launcher-modal');
+    modal.classList.add('active');
   };
+
+  // Close App Launcher Modal Logic
+  const launcherModal = document.getElementById('app-launcher-modal');
+  const closeLauncherBtn = document.getElementById('close-launcher-btn');
+  const closeLauncherModal = () => launcherModal.classList.remove('active');
+
+  closeLauncherBtn.addEventListener('click', closeLauncherModal);
+  launcherModal.addEventListener('click', (e) => {
+    if (e.target === launcherModal) closeLauncherModal();
+  });
 
   // Run fetching data
   loadAllData();
