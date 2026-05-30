@@ -22,7 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
     maxClusterRadius: 45,
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: true,
-    disableClusteringAtZoom: 16
+    disableClusteringAtZoom: 16,
+    iconCreateFunction: function(cluster) {
+      const count = cluster.getChildCount();
+      return L.divIcon({
+        html: `<div class="custom-cluster"><span>${count}</span></div>`,
+        className: 'custom-cluster-marker',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+      });
+    }
   }).addTo(map);
 
   // Handle zoom-based cluster and line visibility
@@ -322,14 +331,9 @@ document.addEventListener('DOMContentLoaded', () => {
           fillOpacity: 0.16,
           weight: 1.5,
           opacity: 0.6,
-          dashArray: '3, 4'
-        }).bindPopup(`
-          <div class="custom-popup-content">
-            <span class="popup-brand-badge irent">iRent 獨佔隨還區</span>
-            <h4>${zone.name}</h4>
-            <p><i class="fa-solid fa-circle-info"></i>僅和雲 iRent 車輛支援此區域的路邊隨還與特約場。</p>
-          </div>
-        `).addTo(layers.zones);
+          dashArray: '3, 4',
+          interactive: false // Disabled click interaction to prevent accidental popups
+        }).addTo(layers.zones);
       });
     }
 
@@ -341,14 +345,9 @@ document.addEventListener('DOMContentLoaded', () => {
           fillOpacity: 0.16,
           weight: 1.5,
           opacity: 0.6,
-          dashArray: '3, 4'
-        }).bindPopup(`
-          <div class="custom-popup-content">
-            <span class="popup-brand-badge gosmart">GoSmart 獨佔隨還區</span>
-            <h4>${zone.name}</h4>
-            <p><i class="fa-solid fa-circle-info"></i>僅格上 GoSmart 車輛支援此區域的路邊隨還與特約場。</p>
-          </div>
-        `).addTo(layers.zones);
+          dashArray: '3, 4',
+          interactive: false // Disabled click interaction to prevent accidental popups
+        }).addTo(layers.zones);
       });
     }
 
@@ -360,14 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
           fillOpacity: 0.24,
           weight: 1.8,
           opacity: 0.7,
-          dashArray: '3, 4'
-        }).bindPopup(`
-          <div class="custom-popup-content">
-            <span class="popup-brand-badge nearby" style="background-color: #f97316; color: #ffffff;"><i class="fa-solid fa-arrows-up-down-left-right"></i> 雙雄隨還交會區</span>
-            <h4>${zone.name}</h4>
-            <p><i class="fa-solid fa-circle-nodes"></i>iRent 與 GoSmart 皆支援此區隨租隨還，跨品牌用車首選！</p>
-          </div>
-        `).addTo(layers.zones);
+          dashArray: '3, 4',
+          interactive: false // Disabled click interaction to prevent accidental popups
+        }).addTo(layers.zones);
       });
     }
 
