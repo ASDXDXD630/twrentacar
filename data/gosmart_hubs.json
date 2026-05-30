@@ -1,0 +1,44 @@
+[
+  {
+    "id": "gosmart_tc_hsr",
+    "name": "格上 GoSmart 台中高鐵調度站",
+    "address": "台中市烏日區高鐵東一路",
+    "lat": 24.112108,
+    "lng": 120.615858
+  },
+  {
+    "id": "gosmart_tc_station",
+    "name": "格上 GoSmart 台中火車站調度站",
+    "address": "台中市中區台灣大道一段1號",
+    "lat": 24.137255,
+    "lng": 120.686521
+  },
+  {
+    "id": "gosmart_tc_xinwuri",
+    "name": "格上 GoSmart 新烏日火車站調度站",
+    "address": "台中市烏日區高鐵東一路26號",
+    "lat": 24.109867,
+    "lng": 120.614631
+  },
+  {
+    "id": "gosmart_tc_fengjia",
+    "name": "格上 GoSmart 逢甲夜市調度站",
+    "address": "台中市西屯區逢甲路",
+    "lat": 24.178822,
+    "lng": 120.645062
+  },
+  {
+    "id": "gosmart_tc_7th",
+    "name": "格上 GoSmart 七期百貨商圈調度站",
+    "address": "台中市西屯區台灣大道三段301號",
+    "lat": 24.162744,
+    "lng": 120.642953
+  },
+  {
+    "id": "gosmart_tpe_airport",
+    "name": "格上 GoSmart 桃園機場大漁調度站",
+    "address": "桃園市大園區航站南路9號",
+    "lat": 25.078233,
+    "lng": 121.233511
+  }
+]

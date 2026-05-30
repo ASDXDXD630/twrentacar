@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>三大共享租車平台 | 地圖儀表板</title>
+  
+  <!-- PWA Metadata & Mobile Settings -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f131c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="三大共享租車平台">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS (Local backup to prevent vertical alignment layout bug) -->
+  <link rel="stylesheet" href="lib/leaflet.css" />
+  
+  <!-- Leaflet MarkerCluster CSS (Local backup) -->
+  <link rel="stylesheet" href="lib/MarkerCluster.css" />
+  <link rel="stylesheet" href="lib/MarkerCluster.Default.css" />
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  
+  <!-- Dashboard App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Sidebar Control Panel -->
+    <aside class="sidebar glass-panel">
+      <header class="app-header">
+        <div class="logo-area">
+          <i class="fa-solid fa-car-tunnel glowing-logo"></i>
+          <h1>三大共享租車 <span>平台地圖</span></h1>
+        </div>
+        <p class="subtitle">iRent、GoSmart、URiDE「異站租還 / 隨租隨還」觀測儀表板</p>
+      </header>
+
+      <!-- Statistics Panel -->
+      <section class="stats-container">
+        <div class="stat-card total">
+          <span class="stat-label">總觀測據點</span>
+          <span class="stat-value" id="stat-total">0</span>
+          <div class="stat-progress"></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card uride">
+            <span class="stat-label">URiDE 站點</span>
+            <span class="stat-value" id="stat-uride">0</span>
+          </div>
+          <div class="stat-card gosmart">
+            <span class="stat-label">GoSmart 站點</span>
+            <span class="stat-value" id="stat-gosmart">0</span>
+          </div>
+        </div>
+        <div class="stat-card zones">
+          <span class="stat-label">路邊隨租隨還營運區</span>
+          <span class="stat-value" id="stat-zones">0</span>
+        </div>
+      </section>
+
+      <!-- Filter Controls -->
+      <section class="filter-section">
+        <h3><i class="fa-solid fa-sliders"></i> 品牌篩選</h3>
+        
+        <div class="brand-selectors">
+          <!-- URide Toggle -->
+          <label class="brand-toggle uride-toggle">
+            <input type="checkbox" id="toggle-uride" checked>
+            <span class="custom-checkbox">
+              <i class="fa-solid fa-check"></i>
+            </span>
+            <span class="brand-name">中租 URiDE (恣意)</span>
+            <span class="dot-badge uride-color"></span>
+          </label>
+
+          <!-- GoSmart Toggle -->
+          <label class="brand-toggle gosmart-toggle">
+            <input type="checkbox" id="toggle-gosmart" checked>
+            <span class="custom-checkbox">
+              <i class="fa-solid fa-check"></i>
+            </span>
+            <span class="brand-name">格上 GoSmart</span>
+            <span class="dot-badge gosmart-color"></span>
+          </label>
+
+          <!-- iRent Toggle -->
+          <label class="brand-toggle irent-toggle">
+            <input type="checkbox" id="toggle-irent" checked>
+            <span class="custom-checkbox">
+              <i class="fa-solid fa-check"></i>
+            </span>
+            <span class="brand-name">和雲 iRent</span>
+            <span class="dot-badge irent-color"></span>
+          </label>
+
+          <!-- Nearby Junctions Toggle -->
+          <label class="brand-toggle nearby-toggle" style="margin-top: 8px; border-color: rgba(217, 70, 239, 0.35);">
+            <input type="checkbox" id="toggle-nearby" checked>
+            <span class="custom-checkbox" style="border-color: var(--color-nearby);">
+              <i class="fa-solid fa-circle-nodes" style="color: var(--color-nearby); font-size: 10px;"></i>
+            </span>
+            <span class="brand-name" style="color: var(--color-nearby); font-weight: 600;">200m 他牌交會點</span>
+            <span class="dot-badge nearby-color"></span>
+          </label>
+        </div>
+      </section>
+
+
+
+      <!-- Search Section -->
+      <section class="search-section">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="search-input" placeholder="搜尋站點名稱、地址或行政區...">
+          <button id="clear-search" class="clear-btn"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </section>
+
+      <!-- Stations List Section -->
+      <section class="list-section">
+        <div class="list-header">
+          <h3><i class="fa-solid fa-map-location-dot"></i> 站點與營運區清單</h3>
+          <span id="results-count" class="count-badge">0</span>
+        </div>
+        <div class="stations-list" id="stations-list">
+          <div class="list-placeholder">載入資料中...</div>
+        </div>
+      </section>
+
+      <footer class="sidebar-footer">
+        <p>© 2026 三大共享租車平台 | 繁體中文版</p>
+      </footer>
+    </aside>
+
+    <!-- Map Area -->
+    <main class="map-container">
+      <div id="map"></div>
+      
+
+      
+      <!-- Quick Zoom Controls (Floating) -->
+      <div class="map-overlay-controls glass-panel">
+        <button class="overlay-btn" id="zoom-taiwan" title="定位全台灣">
+          <i class="fa-solid fa-expand"></i> 全台
+        </button>
+        <button class="overlay-btn" id="zoom-north" title="定位北北基桃">
+          <i class="fa-solid fa-city"></i> 北區
+        </button>
+        <button class="overlay-btn" id="zoom-central" title="定位中彰投">
+          <i class="fa-solid fa-mountain-sun"></i> 中區
+        </button>
+        <button class="overlay-btn" id="zoom-south" title="定位高屏台南">
+          <i class="fa-solid fa-umbrella-beach"></i> 南區
+        </button>
+      </div>
+
+      <!-- Find Nearest Car Button (Bottom Center) -->
+      <div class="find-car-overlay">
+        <button id="btn-find-nearest" class="find-nearest-btn">
+          <i class="fa-solid fa-location-crosshairs"></i> 找個車
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Leaflet JS (Local backup) -->
+  <script src="lib/leaflet.js"></script>
+  
+  <!-- Leaflet MarkerCluster JS (Local backup) -->
+  <script src="lib/leaflet.markercluster.js"></script>
+  
+  <!-- Application JS -->
+  <script src="app.js"></script>
+</body>
+</html>
