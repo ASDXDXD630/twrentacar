@@ -91,6 +91,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCentral = document.getElementById('zoom-central');
   const btnSouth = document.getElementById('zoom-south');
 
+  // Mobile Drawer Toggle UI Elements & Listeners
+  const menuToggleBtn = document.getElementById('menu-toggle-btn');
+  const sidebarPanel = document.getElementById('sidebar-panel');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+  function openMobileSidebar() {
+    sidebarPanel.classList.add('active');
+    sidebarOverlay.classList.add('active');
+  }
+
+  function closeMobileSidebar() {
+    sidebarPanel.classList.remove('active');
+    sidebarOverlay.classList.remove('active');
+  }
+
+  if (menuToggleBtn && sidebarPanel && sidebarOverlay) {
+    menuToggleBtn.addEventListener('click', openMobileSidebar);
+    sidebarOverlay.addEventListener('click', closeMobileSidebar);
+  }
+
   // ==========================================================================
   // 4. Distance Math (Haversine Formula)
   // ==========================================================================
@@ -603,6 +623,11 @@ document.addEventListener('DOMContentLoaded', () => {
         markerCluster.zoomToShowLayer(marker, () => {
           marker.openPopup();
         });
+      }
+
+      // Auto-close sidebar drawer on mobile to show the map
+      if (window.innerWidth <= 768) {
+        closeMobileSidebar();
       }
     });
 
