@@ -1,4 +1,4 @@
-const CACHE_NAME = "carsharing-map-v3"; // bumped: perf optimization 2026-06-09
+const CACHE_NAME = "carsharing-map-v4"; // bumped: added 10 Da'an iRent stations 2026-06-09
 const STATIC_ASSETS = [
   "./",
   "./index.html",
