@@ -746,39 +746,81 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Global App Launcher Redirection Logic
-  window.triggerRentApp = function(brand) {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    let webUrl = '';
-    let storeUrl = '';
-    let brandName = '';
-
-    if (brand === 'irent') {
-      brandName = '和雲 iRent';
-      webUrl = 'https://www.easyrent.com.tw/irent/web/';
-      storeUrl = isIOS 
-        ? 'https://apps.apple.com/tw/app/irent/id929007421' 
-        : 'https://play.google.com/store/apps/details?id=com.easyrent.easyrent';
-    } else if (brand === 'gosmart') {
-      brandName = '格上 GoSmart';
-      webUrl = 'https://www.car-plus.com.tw/';
-      storeUrl = isIOS 
-        ? 'https://apps.apple.com/tw/app/id1500552794' 
-        : 'https://play.google.com/store/apps/details?id=com.carplus.gosmart';
-    } else if (brand === 'uride') {
-      brandName = '中租 URiDE';
-      webUrl = 'https://www.uride.com.tw/';
-      storeUrl = isIOS 
-        ? 'https://apps.apple.com/tw/app/uride/id6471373507' 
-        : 'https://play.google.com/store/apps/details?id=tw.com.chailease.uride';
+  // ── App 設定資料表 ──────────────────────────────────────────────────────────
+  // Android package ID 請以 Google Play 網址確認：
+  //   play.google.com/store/apps/details?id=<package_id>
+  // iOS App Store ID 請以官方頁面確認
+  const APP_CONFIG = {
+    irent: {
+      name: '和雲 iRent',
+      webUrl: 'https://www.easyrent.com.tw/irent/web/',
+      androidPackage: 'com.cht.easyrent.irent',         // 已修正（舊：com.easyrent.easyrent）
+      androidScheme: 'intent://main#Intent;scheme=irent;package=com.cht.easyrent.irent;end',
+      iosAppId: '929007421',
+      iosStoreUrl: 'https://apps.apple.com/tw/app/irent/id929007421'
+    },
+    gosmart: {
+      name: '格上 GoSmart',
+      webUrl: 'https://www.car-plus.com.tw/',
+      androidPackage: 'tw.com.carplus.gosmart',          // 已修正（舊：com.carplus.gosmart）
+      androidScheme: 'intent://main#Intent;scheme=gosmart;package=tw.com.carplus.gosmart;end',
+      iosAppId: '1500552794',
+      iosStoreUrl: 'https://apps.apple.com/tw/app/id1500552794'
+    },
+    uride: {
+      name: '中租 URiDE',
+      webUrl: 'https://www.uridego.com.tw/',
+      androidPackage: 'tw.com.chailease.android.shareCar', // 已修正（舊：tw.com.chailease.uride）
+      androidScheme: 'intent://main#Intent;scheme=uride;package=tw.com.chailease.android.shareCar;end',
+      iosAppId: '6471373507',
+      iosStoreUrl: 'https://apps.apple.com/tw/app/uride/id6471373507'
     }
+  };
 
-    // Set modal content and links
-    document.getElementById('launcher-title').textContent = `開啟 ${brandName}`;
-    const webLink = document.getElementById('launcher-link-web');
+  window.triggerRentApp = function(brand) {
+    const cfg = APP_CONFIG[brand];
+    if (!cfg) return;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isAndroid = /Android/.test(navigator.userAgent);
+
+    // ── Modal 文字設定 ──────────────────────────────────────────────────────
+    document.getElementById('launcher-title').textContent = `開啟 ${cfg.name}`;
+
+    const webLink   = document.getElementById('launcher-link-web');
     const storeLink = document.getElementById('launcher-link-store');
 
-    webLink.href = webUrl;
-    storeLink.href = storeUrl;
+    webLink.href = cfg.webUrl;
+
+    if (isAndroid) {
+      // Android：使用 intent:// scheme 直接喚醒已安裝的 App
+      // fallbackUrl 確保沒裝的話自動跳 Play Store
+      const playUrl  = `https://play.google.com/store/apps/details?id=${cfg.androidPackage}`;
+      const intentUrl = `intent://open#Intent;scheme=${brand};package=${cfg.androidPackage};S.browser_fallback_url=${encodeURIComponent(playUrl)};end`;
+
+      storeLink.href = intentUrl;
+      // 更新說明文字讓使用者更清楚
+      const storeStrong = storeLink.querySelector('strong');
+      const storeSpan   = storeLink.querySelector('span');
+      if (storeStrong) storeStrong.textContent = '開啟 App 或前往 Google Play 📱';
+      if (storeSpan)   storeSpan.textContent   = '已安裝者直接開啟，未安裝者跳至 Play Store 下載';
+
+    } else if (isIOS) {
+      // iOS：直接跳 App Store（iOS 系統內建會自動處理「開啟 App」彈窗）
+      storeLink.href = cfg.iosStoreUrl;
+      const storeStrong = storeLink.querySelector('strong');
+      const storeSpan   = storeLink.querySelector('span');
+      if (storeStrong) storeStrong.textContent = '前往 App Store 下載或開啟 📥';
+      if (storeSpan)   storeSpan.textContent   = '已安裝者可直接點擊「開啟」啟動 App';
+
+    } else {
+      // 電腦瀏覽器：給 Play Store 連結
+      storeLink.href = `https://play.google.com/store/apps/details?id=${cfg.androidPackage}`;
+      const storeStrong = storeLink.querySelector('strong');
+      const storeSpan   = storeLink.querySelector('span');
+      if (storeStrong) storeStrong.textContent = '前往 App 商店 📥';
+      if (storeSpan)   storeSpan.textContent   = '手機掃描下載或在商店搜尋 App';
+    }
 
     // Show modal
     const modal = document.getElementById('app-launcher-modal');
