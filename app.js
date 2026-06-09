@@ -1,5 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
+  // 0. Performance Utilities
+  // ==========================================================================
+  // Debounce: 等待使用者停止輸入後才執行，避免頻繁 DOM 重建
+  function debounce(fn, delay) {
+    let timer;
+    return function(...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
+  // ==========================================================================
   // 1. Map Initialization (Default to Colorful Voyager Tiles)
   // ==========================================================================
   const map = L.map('map', {
@@ -10,42 +21,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
   L.control.zoom({ position: 'topright' }).addTo(map);
 
-  // CartoDB Voyager Tile Layer (Vibrant colors, clear green parks, blue rivers/oceans, highways)
+  // CartoDB Voyager Tile Layer
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors &copy; <a href=\"https://carto.com/attributions\">CARTO</a>',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
-    maxZoom: 20
+    maxZoom: 20,
+    keepBuffer: 4,          // 預載周圍 4 格 tile，滑動時不閃白
+    updateWhenIdle: false,  // 持續滑動時也更新 tile（更順暢）
+    updateWhenZooming: false // zoom 動畫期間不重載 tile
   }).addTo(map);
 
-  // Marker Cluster Group (Autoclusters close markers at lower zooms)
+  // Marker Cluster Group
   const markerCluster = L.markerClusterGroup({
-    maxClusterRadius: 45,
+    maxClusterRadius: 50,
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: true,
     disableClusteringAtZoom: 16,
+    // chunkedLoading: 分批把 marker 加入地圖，避免一次塞幾百個 DOM 凍住 UI
+    chunkedLoading: true,
+    chunkInterval: 100,       // 每 100ms 處理一批
+    chunkDelay: 50,           // 每批之間休息 50ms，讓主線程喘氣
+    // animate 關掉可以減少 zoom 時的 layout thrashing
+    animate: true,
+    animateAddingMarkers: false, // 加 marker 不播動畫（省 GPU）
     iconCreateFunction: function(cluster) {
       const count = cluster.getChildCount();
       return L.divIcon({
         html: `<div class="custom-cluster"><span>${count}</span></div>`,
         className: 'custom-cluster-marker',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
       });
     }
   }).addTo(map);
 
   // Handle zoom-based cluster and line visibility
+  // 用 requestAnimationFrame 包住，確保在瀏覽器畫完一幀後才改 DOM，避免 layout thrashing
+  let _zoomRafId = null;
   function handleZoomLevels() {
-    const zoom = map.getZoom();
-    
-    // Zoom <= 9: Hide all station markers and nearby connection lines to save resource and keep clean
-    if (zoom <= 9) {
-      if (map.hasLayer(markerCluster)) map.removeLayer(markerCluster);
-      if (map.hasLayer(layers.nearby)) map.removeLayer(layers.nearby);
-    } else {
-      if (!map.hasLayer(markerCluster)) map.addLayer(markerCluster);
-      if (toggleNearby.checked && !map.hasLayer(layers.nearby)) map.addLayer(layers.nearby);
-    }
+    if (_zoomRafId) cancelAnimationFrame(_zoomRafId);
+    _zoomRafId = requestAnimationFrame(() => {
+      const zoom = map.getZoom();
+      if (zoom <= 9) {
+        if (map.hasLayer(markerCluster)) map.removeLayer(markerCluster);
+        if (map.hasLayer(layers.nearby))  map.removeLayer(layers.nearby);
+      } else {
+        if (!map.hasLayer(markerCluster)) map.addLayer(markerCluster);
+        if (toggleNearby.checked && !map.hasLayer(layers.nearby)) map.addLayer(layers.nearby);
+      }
+    });
   }
 
   map.on('zoomend', handleZoomLevels);
@@ -636,10 +660,11 @@ document.addEventListener('DOMContentLoaded', () => {
   toggleiRent.addEventListener('change', updateStationVisibility);
   toggleNearby.addEventListener('change', updateStationVisibility);
 
-  // Search input events
+  // Search input events — debounce 200ms 防止每個按鍵都重建 DOM 列表
+  const debouncedRenderList = debounce(renderStationsList, 200);
   searchInput.addEventListener('input', () => {
     clearSearchBtn.style.display = searchInput.value.length > 0 ? 'block' : 'none';
-    renderStationsList();
+    debouncedRenderList();
   });
 
   clearSearchBtn.addEventListener('click', () => {

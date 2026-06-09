@@ -65,6 +65,7 @@ body {
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-neon);
+  will-change: transform;
 }
 
 /* ==========================================================================
@@ -628,6 +629,8 @@ body {
   position: absolute;
   z-index: 2;
   transition: var(--transition-smooth);
+  will-change: transform;
+  contain: layout style;
 }
 
 .marker-pulse {
@@ -640,6 +643,7 @@ body {
   opacity: 0;
   z-index: 1;
   animation: markerRipple 2.2s infinite ease-out;
+  will-change: transform, opacity;
 }
 
 /* Glow Marker Brand Colors */
@@ -1177,7 +1181,7 @@ body {
   color: var(--color-nearby);
 }
 
-/* Custom Glassmorphism Clusters */
+/* Custom Clusters - NO backdrop-filter blur (major perf killer on mobile) */
 .custom-cluster-marker {
   display: flex;
   align-items: center;
@@ -1188,11 +1192,10 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(15, 19, 28, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 2px solid var(--color-nearby); /* Neon purple border */
-  box-shadow: 0 0 12px var(--color-nearby-glow), 0 4px 8px rgba(0, 0, 0, 0.6);
+  /* backdrop-filter blur removed - use solid bg instead to save GPU */
+  background: rgba(12, 15, 24, 0.92);
+  border: 2px solid var(--color-nearby);
+  box-shadow: 0 0 10px var(--color-nearby-glow), 0 3px 6px rgba(0, 0, 0, 0.6);
   color: #ffffff;
   font-family: 'Outfit', sans-serif;
   font-weight: 700;
@@ -1200,11 +1203,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: var(--transition-smooth);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
 }
 
 .custom-cluster:hover {
   transform: scale(1.08);
   border-color: #ffffff;
-  box-shadow: 0 0 16px var(--color-nearby);
+  box-shadow: 0 0 14px var(--color-nearby);
+}
+
+/* On mobile: disable pulse animation at medium/low zoom to save GPU */
+@media (max-width: 768px) {
+  .zoom-medium .marker-pulse,
+  .zoom-low .marker-pulse {
+    animation: none !important;
+    display: none !important;
+  }
 }

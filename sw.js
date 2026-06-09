@@ -1,4 +1,4 @@
-const CACHE_NAME = "carsharing-map-v1";
+const CACHE_NAME = "carsharing-map-v3"; // bumped: perf optimization 2026-06-09
 const STATIC_ASSETS = [
   "./",
   "./index.html",
