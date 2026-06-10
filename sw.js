@@ -1,4 +1,4 @@
-const CACHE_NAME = "carsharing-map-v5"; // bumped: URiDE +5 stations, auto-update scripts added 2026-06-10
+const CACHE_NAME = "carsharing-map-20260610"; // bumped: URiDE +5 stations, auto-update scripts added 2026-06-10
 const STATIC_ASSETS = [
   "./",
   "./index.html",
