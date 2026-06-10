@@ -1,0 +1,111 @@
+name: 自動更新三大平台站點資料
+
+on:
+  schedule:
+    # 每週一早上 8:00 台灣時間（UTC+8 = UTC 00:00）
+    - cron: '0 0 * * 1'
+  workflow_dispatch:
+    # 允許手動觸發（在 GitHub Actions 頁面按 "Run workflow"）
+
+permissions:
+  contents: write  # 允許 commit 更新的 JSON 檔案
+
+jobs:
+  update-stations:
+    name: 更新共享汽車站點資料
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 安裝 Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: 安裝 Playwright 及瀏覽器
+        run: |
+          pip install -r scripts/requirements.txt
+          python -m playwright install chromium --with-deps
+
+      - name: 記錄更新前站點數量
+        run: |
+          echo "BEFORE_IRENT=$(python -c "import json; print(len(json.load(open('data/irent_stations.json','r',encoding='utf-8'))))")" >> $GITHUB_ENV
+          echo "BEFORE_GOSMART=$(python -c "import json; print(len(json.load(open('data/gosmart_stations.json','r',encoding='utf-8'))))")" >> $GITHUB_ENV
+          echo "BEFORE_URIDE=$(python -c "import json; print(len(json.load(open('data/uride_stations.json','r',encoding='utf-8'))))")" >> $GITHUB_ENV
+
+      - name: 執行 iRent 爬蟲
+        run: python scripts/scrape_irent.py
+        continue-on-error: true  # 某個平台失敗不影響其他平台
+
+      - name: 執行 GoSmart 爬蟲
+        run: python scripts/scrape_gosmart.py
+        continue-on-error: true
+
+      - name: 執行 URiDE 爬蟲
+        run: python scripts/scrape_uride.py
+        continue-on-error: true
+
+      - name: 記錄更新後站點數量
+        run: |
+          echo "AFTER_IRENT=$(python -c "import json; print(len(json.load(open('data/irent_stations.json','r',encoding='utf-8'))))")" >> $GITHUB_ENV
+          echo "AFTER_GOSMART=$(python -c "import json; print(len(json.load(open('data/gosmart_stations.json','r',encoding='utf-8'))))")" >> $GITHUB_ENV
+          echo "AFTER_URIDE=$(python -c "import json; print(len(json.load(open('data/uride_stations.json','r',encoding='utf-8'))))")" >> $GITHUB_ENV
+
+      - name: 更新 Service Worker 快取版本（讓用戶取得新資料）
+        run: |
+          python - << 'EOF'
+          import re, datetime, pathlib
+
+          sw = pathlib.Path("sw.js").read_text(encoding="utf-8")
+          today = datetime.date.today().strftime("%Y%m%d")
+          new_sw = re.sub(
+              r"(carsharing-map-v)\d+",
+              f"carsharing-map-{today}",
+              sw
+          )
+          pathlib.Path("sw.js").write_text(new_sw, encoding="utf-8")
+          print(f"sw.js 快取版本已更新為 carsharing-map-{today}")
+          EOF
+
+      - name: Commit 並推送更新
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "站點資料自動更新機器人"
+          git add data/irent_stations.json data/gosmart_stations.json data/uride_stations.json sw.js
+          
+          # 只在有變更時才 commit
+          if git diff --staged --quiet; then
+            echo "沒有新站點資料，跳過 commit"
+          else
+            IRENT_DIFF=$(($AFTER_IRENT - $BEFORE_IRENT))
+            GOSMART_DIFF=$(($AFTER_GOSMART - $BEFORE_GOSMART))
+            URIDE_DIFF=$(($AFTER_URIDE - $BEFORE_URIDE))
+            TOTAL=$((IRENT_DIFF + GOSMART_DIFF + URIDE_DIFF))
+            
+            git commit -m "🤖 自動更新站點資料 $(date '+%Y-%m-%d')
+
+            iRent: $BEFORE_IRENT → $AFTER_IRENT (+$IRENT_DIFF)
+            GoSmart: $BEFORE_GOSMART → $AFTER_GOSMART (+$GOSMART_DIFF)
+            URiDE: $BEFORE_URIDE → $AFTER_URIDE (+$URIDE_DIFF)
+            
+            共新增 $TOTAL 個站點"
+            
+            git push
+            echo "✅ 資料已更新並推送"
+          fi
+
+      - name: 產生摘要報告
+        if: always()
+        run: |
+          echo "## 站點更新結果 📍" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| 平台 | 更新前 | 更新後 | 新增 |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|--------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| iRent | $BEFORE_IRENT | $AFTER_IRENT | $((AFTER_IRENT - BEFORE_IRENT)) |" >> $GITHUB_STEP_SUMMARY
+          echo "| GoSmart | $BEFORE_GOSMART | $AFTER_GOSMART | $((AFTER_GOSMART - BEFORE_GOSMART)) |" >> $GITHUB_STEP_SUMMARY
+          echo "| URiDE | $BEFORE_URIDE | $AFTER_URIDE | $((AFTER_URIDE - BEFORE_URIDE)) |" >> $GITHUB_STEP_SUMMARY
