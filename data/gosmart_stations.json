@@ -3,15 +3,15 @@
     "id": "gosmart_tc_hsr",
     "name": "格上 GoSmart 台中高鐵調度站",
     "address": "台中市烏日區高鐵東一路",
-    "lat": 24.112108,
-    "lng": 120.615858
+    "lat": 24.111616,
+    "lng": 120.615738
   },
   {
     "id": "gosmart_tc_station",
     "name": "格上 GoSmart 台中火車站調度站",
     "address": "台中市中區台灣大道一段1號",
-    "lat": 24.137255,
-    "lng": 120.686521
+    "lat": 24.136827,
+    "lng": 120.686336
   },
   {
     "id": "gosmart_tc_xinwuri",
@@ -66,8 +66,8 @@
     "id": "gosmart_tp_songshan_st",
     "name": "格上 GoSmart 台北松山車站",
     "address": "台北市信義區市民大道六段288號",
-    "lat": 25.04895,
-    "lng": 121.578611
+    "lat": 25.049214,
+    "lng": 121.57913
   },
   {
     "id": "gosmart_tp_neihu",
@@ -94,15 +94,15 @@
     "id": "gosmart_tp_tech",
     "name": "格上 GoSmart 台北科技大樓站",
     "address": "台北市大安區復興南路二段224號",
-    "lat": 25.02613,
-    "lng": 121.54342
+    "lat": 25.02586,
+    "lng": 121.54315
   },
   {
     "id": "gosmart_ntp_banqiao",
     "name": "格上 GoSmart 台北板橋驛站",
     "address": "新北市板橋區縣民大道二段7號1樓",
-    "lat": 25.01428,
-    "lng": 121.46328
+    "lat": 25.01388,
+    "lng": 121.46388
   },
   {
     "id": "gosmart_ntp_zhonghe",
@@ -150,36 +150,36 @@
     "id": "gosmart_kl_station",
     "name": "格上 GoSmart 基隆火車站南站",
     "address": "基隆市仁愛區港西街5號",
-    "lat": 25.130320,
-    "lng": 121.738870
+    "lat": 25.13032,
+    "lng": 121.73887
   },
   {
     "id": "gosmart_kl_east_coast",
     "name": "格上 GoSmart 基隆東岸停車場",
     "address": "基隆市仁愛區仁二路236號",
-    "lat": 25.128790,
-    "lng": 121.744100
+    "lat": 25.12879,
+    "lng": 121.7441
   },
   {
     "id": "gosmart_kl_xin2",
     "name": "格上 GoSmart 基隆信二路停車場",
     "address": "基隆市信義區信二路299號",
-    "lat": 25.129950,
-    "lng": 121.746810
+    "lat": 25.12995,
+    "lng": 121.74681
   },
   {
     "id": "gosmart_kl_baifu",
     "name": "格上 GoSmart 基隆百福站",
     "address": "基隆市七堵區百六街附近",
-    "lat": 25.077850,
-    "lng": 121.691230
+    "lat": 25.07785,
+    "lng": 121.69123
   },
   {
     "id": "gosmart_ty_hsr",
     "name": "格上 GoSmart 桃園高鐵站",
     "address": "桃園市中壢區高鐵北路一段6號",
-    "lat": 25.0135,
-    "lng": 121.2150
+    "lat": 25.013609,
+    "lng": 121.214944
   },
   {
     "id": "gosmart_ty_station",
@@ -199,8 +199,8 @@
     "id": "gosmart_hc_hsr",
     "name": "格上 GoSmart 新竹高鐵站",
     "address": "新竹縣竹北市高鐵七路6號",
-    "lat": 24.8080,
-    "lng": 121.0405
+    "lat": 24.80806,
+    "lng": 121.040415
   },
   {
     "id": "gosmart_hc_station",
@@ -214,20 +214,20 @@
     "name": "格上 GoSmart 竹科園區站",
     "address": "新竹市東區新安路2號",
     "lat": 24.7775,
-    "lng": 121.0160
+    "lng": 121.016
   },
   {
     "id": "gosmart_yl_station",
     "name": "格上 GoSmart 宜蘭火車站",
     "address": "宜蘭縣宜蘭市光復路1號",
     "lat": 24.7572,
-    "lng": 121.7570
+    "lng": 121.757
   },
   {
     "id": "gosmart_yl_luodong",
     "name": "格上 GoSmart 羅東火車站",
     "address": "宜蘭縣羅東鎮公正路2號",
-    "lat": 24.6770,
+    "lat": 24.677,
     "lng": 121.7725
   },
   {
@@ -241,8 +241,8 @@
     "id": "gosmart_tn_hsr",
     "name": "格上 GoSmart 台南高鐵站",
     "address": "台南市歸仁區歸仁大道100號",
-    "lat": 22.9248,
-    "lng": 120.2858
+    "lat": 22.92464,
+    "lng": 120.285662
   },
   {
     "id": "gosmart_tn_station",
@@ -255,8 +255,8 @@
     "id": "gosmart_kh_hsr",
     "name": "格上 GoSmart 左營高鐵站",
     "address": "高雄市左營區高鐵路105號",
-    "lat": 22.6880,
-    "lng": 120.3075
+    "lat": 22.687135,
+    "lng": 120.307658
   },
   {
     "id": "gosmart_kh_station",
@@ -264,5 +264,600 @@
     "address": "高雄市三民區建國二路318號",
     "lat": 22.6397,
     "lng": 120.3022
+  },
+  {
+    "id": "gosmart_201",
+    "name": "格上 GoSmart 台北建北站",
+    "address": "台北市中山區建國北路一段71-1號",
+    "lat": 25.051087,
+    "lng": 121.537246
+  },
+  {
+    "id": "gosmart_202",
+    "name": "格上 GoSmart 台北忠孝站",
+    "address": "台北市信義區忠孝東路五段705號",
+    "lat": 25.042513,
+    "lng": 121.580242
+  },
+  {
+    "id": "gosmart_203",
+    "name": "格上 GoSmart 台北景美站",
+    "address": "台北市文山區羅斯福路五段221號",
+    "lat": 25.002065,
+    "lng": 121.539165
+  },
+  {
+    "id": "gosmart_204",
+    "name": "格上 GoSmart 台北士林站",
+    "address": "台北市士林區德行西路81號",
+    "lat": 25.104611,
+    "lng": 121.521735
+  },
+  {
+    "id": "gosmart_205",
+    "name": "格上 GoSmart 台北內湖站",
+    "address": "台北市內湖區內湖路一段210號",
+    "lat": 25.082133,
+    "lng": 121.564985
+  },
+  {
+    "id": "gosmart_206",
+    "name": "格上 GoSmart 台北南港站",
+    "address": "台北市南港區經貿一路59號",
+    "lat": 25.056255,
+    "lng": 121.620042
+  },
+  {
+    "id": "gosmart_209",
+    "name": "格上 GoSmart 台北新店站(行遍)",
+    "address": "新北市新店區中興路三段11號B1(LUXGEN新店服務廠旁)",
+    "lat": 24.978359,
+    "lng": 121.545143
+  },
+  {
+    "id": "gosmart_210",
+    "name": "格上 GoSmart 台北車站",
+    "address": "台北市中正區忠孝西路一段50-1號B1樓(Z區站前地下街2-2櫃位)",
+    "lat": 25.046767,
+    "lng": 121.515586
+  },
+  {
+    "id": "gosmart_216",
+    "name": "格上 GoSmart 台北蘆洲站",
+    "address": "新北市蘆洲區三民路88號",
+    "lat": 25.085329,
+    "lng": 121.473834
+  },
+  {
+    "id": "gosmart_216-1",
+    "name": "格上 GoSmart 【行動】台北新莊站",
+    "address": "220新北市新莊區思源路40-1號",
+    "lat": 25.04338,
+    "lng": 121.46036
+  },
+  {
+    "id": "gosmart_217",
+    "name": "格上 GoSmart 台北土城站",
+    "address": "新北市土城區中央路三段158號",
+    "lat": 24.965791,
+    "lng": 121.432121
+  },
+  {
+    "id": "gosmart_218",
+    "name": "格上 GoSmart 台北中和站",
+    "address": "新北市中和區連城路126號",
+    "lat": 24.999371,
+    "lng": 121.495996
+  },
+  {
+    "id": "gosmart_218-1",
+    "name": "格上 GoSmart 【行動】台北中和四號公園站",
+    "address": "新北市中和區中安街85號B2",
+    "lat": 25.00139,
+    "lng": 121.51278
+  },
+  {
+    "id": "gosmart_219",
+    "name": "格上 GoSmart 台北松山機場站",
+    "address": "台北市松山區敦化北路340之9號",
+    "lat": 25.064021,
+    "lng": 121.550894
+  },
+  {
+    "id": "gosmart_222",
+    "name": "格上 GoSmart 台北淡水站",
+    "address": "新北市淡水區中正路1號",
+    "lat": 25.167302,
+    "lng": 121.446494
+  },
+  {
+    "id": "gosmart_222-1",
+    "name": "格上 GoSmart 【行動】台北淡水竹圍站",
+    "address": "新北市淡水區民權路39號(NISSAN淡水服務廠)",
+    "lat": 25.140843,
+    "lng": 121.459991
+  },
+  {
+    "id": "gosmart_224-1",
+    "name": "格上 GoSmart 【行動】台北高爾富站",
+    "address": "新北市板橋區高爾富路303號",
+    "lat": 24.997573,
+    "lng": 121.454251
+  },
+  {
+    "id": "gosmart_224-2",
+    "name": "格上 GoSmart 【行動】台北板橋文化站",
+    "address": "新北市板橋區文化路二段266號",
+    "lat": 25.028852,
+    "lng": 121.471706
+  },
+  {
+    "id": "gosmart_231",
+    "name": "格上 GoSmart 宜蘭羅東站",
+    "address": "宜蘭縣羅東鎮光榮路334號",
+    "lat": 24.678471,
+    "lng": 121.778
+  },
+  {
+    "id": "gosmart_301",
+    "name": "格上 GoSmart 桃園復興站",
+    "address": "桃園市桃園區復興路325號",
+    "lat": 24.989457,
+    "lng": 121.304681
+  },
+  {
+    "id": "gosmart_304",
+    "name": "格上 GoSmart 桃園中壢站",
+    "address": "桃園市中壢區中園路181號",
+    "lat": 24.970398,
+    "lng": 121.235735
+  },
+  {
+    "id": "gosmart_304-1",
+    "name": "格上 GoSmart 【行動】桃園中壢國小站",
+    "address": "320桃園市中壢區延平路622號B1",
+    "lat": 24.954011,
+    "lng": 121.221799
+  },
+  {
+    "id": "gosmart_306",
+    "name": "格上 GoSmart 桃園機場站",
+    "address": "桃園市大園區航站南路15號",
+    "lat": 25.081597,
+    "lng": 121.237939
+  },
+  {
+    "id": "gosmart_307",
+    "name": "格上 GoSmart 苗栗高鐵站",
+    "address": "苗栗縣後龍鎮高鐵三路268號",
+    "lat": 24.605722,
+    "lng": 120.825354
+  },
+  {
+    "id": "gosmart_311",
+    "name": "格上 GoSmart 新竹中華站",
+    "address": "新竹市東區中華路一段315號",
+    "lat": 24.809519,
+    "lng": 120.983848
+  },
+  {
+    "id": "gosmart_311-1",
+    "name": "格上 GoSmart 【行動】新竹火車站(前站)",
+    "address": "新竹市東區林森路18號6F",
+    "lat": 24.801941,
+    "lng": 120.970411
+  },
+  {
+    "id": "gosmart_356",
+    "name": "格上 GoSmart 台中市政站",
+    "address": "台中市西屯區市政路1號",
+    "lat": 24.15522,
+    "lng": 120.646289
+  },
+  {
+    "id": "gosmart_403",
+    "name": "格上 GoSmart 台中機場站",
+    "address": "台中市沙鹿區中航路1段168號(近國際線2號門)",
+    "lat": 24.253846,
+    "lng": 120.599334
+  },
+  {
+    "id": "gosmart_405",
+    "name": "格上 GoSmart 台中中清站",
+    "address": "台中市西屯區中清路二段1326號",
+    "lat": 24.194675,
+    "lng": 120.658876
+  },
+  {
+    "id": "gosmart_406",
+    "name": "格上 GoSmart 彰化高鐵站",
+    "address": "彰化縣田中鎮站區路二段99號",
+    "lat": 23.874328,
+    "lng": 120.574748
+  },
+  {
+    "id": "gosmart_407-1",
+    "name": "格上 GoSmart 【行動】台中大里東榮立體停車場",
+    "address": "412臺中市大里區新光路70-88號",
+    "lat": 24.12,
+    "lng": 120.691
+  },
+  {
+    "id": "gosmart_501",
+    "name": "格上 GoSmart 嘉義站",
+    "address": "嘉義市西區林森西路556號",
+    "lat": 23.479794,
+    "lng": 120.442375
+  },
+  {
+    "id": "gosmart_503",
+    "name": "格上 GoSmart 嘉義高鐵站",
+    "address": "嘉義縣太保市高鐵西路168號",
+    "lat": 23.45925,
+    "lng": 120.32282
+  },
+  {
+    "id": "gosmart_504",
+    "name": "格上 GoSmart 雲林高鐵站",
+    "address": "雲林縣虎尾鎮站前東路301號",
+    "lat": 23.735708,
+    "lng": 120.415979
+  },
+  {
+    "id": "gosmart_603",
+    "name": "格上 GoSmart 台南北門站",
+    "address": "台南市北區北門路二段111號",
+    "lat": 22.99968,
+    "lng": 120.212508
+  },
+  {
+    "id": "gosmart_606",
+    "name": "格上 GoSmart 台南永康站",
+    "address": "台南市永康區中正北路169號",
+    "lat": 23.041863,
+    "lng": 120.242809
+  },
+  {
+    "id": "gosmart_701",
+    "name": "格上 GoSmart 高雄小港站",
+    "address": "高雄市小港區中山四路1、3號",
+    "lat": 22.569242,
+    "lng": 120.34796
+  },
+  {
+    "id": "gosmart_701-1",
+    "name": "格上 GoSmart 【行動】高雄三多商圈站",
+    "address": "高雄市前鎮區中山二路260、262號",
+    "lat": 22.61357,
+    "lng": 120.30507
+  },
+  {
+    "id": "gosmart_703",
+    "name": "格上 GoSmart 高雄車站",
+    "address": "高雄市三民區建國二路264號1樓",
+    "lat": 22.637784,
+    "lng": 120.304742
+  },
+  {
+    "id": "gosmart_705",
+    "name": "格上 GoSmart 高雄左營站",
+    "address": "高雄市左營區重信路615號",
+    "lat": 22.686027,
+    "lng": 120.308299
+  },
+  {
+    "id": "gosmart_706",
+    "name": "格上 GoSmart 高雄鳳山站",
+    "address": "高雄市鳳山區建國路三段378號",
+    "lat": 22.637948,
+    "lng": 120.348653
+  },
+  {
+    "id": "gosmart_709",
+    "name": "格上 GoSmart 高雄小港機場站",
+    "address": "高雄市小港區中山四路2號(高雄國際航空站租車中心)",
+    "lat": 22.574629,
+    "lng": 120.344807
+  },
+  {
+    "id": "gosmart_801",
+    "name": "格上 GoSmart 屏東站",
+    "address": "屏東縣屏東市建國路298號",
+    "lat": 22.66501,
+    "lng": 120.472346
+  },
+  {
+    "id": "gosmart_821",
+    "name": "格上 GoSmart 花蓮站",
+    "address": "花蓮縣花蓮市國聯一路117號",
+    "lat": 23.990667,
+    "lng": 121.602229
+  },
+  {
+    "id": "gosmart_822",
+    "name": "格上 GoSmart 花蓮玉里站",
+    "address": "花蓮縣玉里鎮大同路174號",
+    "lat": 23.32988,
+    "lng": 121.312268
+  },
+  {
+    "id": "gosmart_831",
+    "name": "格上 GoSmart 台東站",
+    "address": "台東縣台東市新站路243號",
+    "lat": 22.79252,
+    "lng": 121.124865
+  },
+  {
+    "id": "gosmart_C001",
+    "name": "格上 GoSmart 台中太平站",
+    "address": "台中市太平區中山路三段21-6號(裕唐NISSAN台中太平服務廠)",
+    "lat": 24.149058,
+    "lng": 120.721299
+  },
+  {
+    "id": "gosmart_C003",
+    "name": "格上 GoSmart 台中松竹站",
+    "address": "台中市北屯區松竹路三段8號(裕唐NISSAN松竹服務廠)",
+    "lat": 24.182058,
+    "lng": 120.683147
+  },
+  {
+    "id": "gosmart_C004",
+    "name": "格上 GoSmart 台中豐原站",
+    "address": "台中市潭子區中山路三段438號(裕唐NISSAN豐原服務廠)",
+    "lat": 24.234153,
+    "lng": 120.709545
+  },
+  {
+    "id": "gosmart_C005",
+    "name": "格上 GoSmart 台中沙鹿站",
+    "address": "台中市沙鹿區台灣大道七段955號(裕唐NISSAN沙鹿服務廠)",
+    "lat": 24.2395,
+    "lng": 120.563809
+  },
+  {
+    "id": "gosmart_C007",
+    "name": "格上 GoSmart 台中文心站",
+    "address": "台中市西屯區文心路三段456號(裕民NISSAN北台中服務廠)",
+    "lat": 24.172359,
+    "lng": 120.664399
+  },
+  {
+    "id": "gosmart_C010",
+    "name": "格上 GoSmart 台南新營站",
+    "address": "台南縣新營市民治路198號(國通NISSAN新營服務廠)",
+    "lat": 23.308806,
+    "lng": 120.305262
+  },
+  {
+    "id": "gosmart_C012",
+    "name": "格上 GoSmart 台南佳里站",
+    "address": "台南縣佳里鎮民安里同安寮1－29號(國通NISSAN佳里服務廠)",
+    "lat": 23.165285,
+    "lng": 120.188345
+  },
+  {
+    "id": "gosmart_C013",
+    "name": "格上 GoSmart 台南永康2站",
+    "address": "台南縣永康市中華路995號(國通NISSAN永康服務廠)",
+    "lat": 23.023119,
+    "lng": 120.218591
+  },
+  {
+    "id": "gosmart_C014",
+    "name": "格上 GoSmart 台南善化站",
+    "address": "台南縣善化鎮興農路50號(國通NISSAN善化服務廠)",
+    "lat": 23.132851,
+    "lng": 120.282272
+  },
+  {
+    "id": "gosmart_C015",
+    "name": "格上 GoSmart 台南健康站",
+    "address": "台南市南區中華西路一段79號(國通NISSAN健康服務廠)",
+    "lat": 22.975491,
+    "lng": 120.183905
+  },
+  {
+    "id": "gosmart_C016",
+    "name": "格上 GoSmart 台北三峽站",
+    "address": "新北市三峽區復興路179-5號(元隆NISSAN三峽服務廠)",
+    "lat": 24.938647,
+    "lng": 121.369003
+  },
+  {
+    "id": "gosmart_C017",
+    "name": "格上 GoSmart 桃園中山站",
+    "address": "桃園市桃園區中山路1310號(元隆NISSAN桃園服務廠)",
+    "lat": 24.980049,
+    "lng": 121.273414
+  },
+  {
+    "id": "gosmart_C018",
+    "name": "格上 GoSmart 桃園楊梅站",
+    "address": "桃園市楊梅區中山北路一段75號(元隆NISSAN楊梅服務廠)",
+    "lat": 24.907466,
+    "lng": 121.151526
+  },
+  {
+    "id": "gosmart_C019",
+    "name": "格上 GoSmart 桃園南崁站",
+    "address": "338桃園市蘆竹區榮安路8-1號(元隆NISSAN南崁服務廠)",
+    "lat": 25.058854,
+    "lng": 121.275592
+  },
+  {
+    "id": "gosmart_C020",
+    "name": "格上 GoSmart 桃園平鎮站",
+    "address": "桃園市平鎮區延平路三段588號(元隆NISSAN平鎮服務廠)",
+    "lat": 24.931757,
+    "lng": 121.197195
+  },
+  {
+    "id": "gosmart_C021",
+    "name": "格上 GoSmart 桃園桃鶯站",
+    "address": "桃園市桃鶯路441號(元隆NISSAN桃鶯服務廠)",
+    "lat": 24.9783,
+    "lng": 121.322251
+  },
+  {
+    "id": "gosmart_C023",
+    "name": "格上 GoSmart 桃園八德站",
+    "address": "桃園市八德區介壽路二段731號(元隆NISSAN八德服務廠)",
+    "lat": 24.938107,
+    "lng": 121.29775
+  },
+  {
+    "id": "gosmart_C024",
+    "name": "格上 GoSmart 桃園龍潭站",
+    "address": "桃園市龍潭區中豐路中山段206號(元隆NISSAN龍潭服務廠)",
+    "lat": 24.866319,
+    "lng": 121.210058
+  },
+  {
+    "id": "gosmart_C025",
+    "name": "格上 GoSmart 桃園中園站",
+    "address": "桃園市中壢區中園路170號(元隆NISSAN北中壢服務廠)",
+    "lat": 24.973866,
+    "lng": 121.236352
+  },
+  {
+    "id": "gosmart_C026",
+    "name": "格上 GoSmart 宜蘭羅東2站",
+    "address": "宜蘭縣羅東鎮純精路三段416號(元隆NISSAN羅東服務廠)",
+    "lat": 24.686416,
+    "lng": 121.768687
+  },
+  {
+    "id": "gosmart_C027",
+    "name": "格上 GoSmart 宜蘭宜興站",
+    "address": "宜蘭縣宜蘭市宜興路三段28號(元隆NISSAN宜蘭服務廠)",
+    "lat": 24.766623,
+    "lng": 121.76146
+  },
+  {
+    "id": "gosmart_C028",
+    "name": "格上 GoSmart 高雄大中站",
+    "address": "高雄市左營區大中一路399號(裕昌NISSAN大中服務廠)",
+    "lat": 22.677565,
+    "lng": 120.321127
+  },
+  {
+    "id": "gosmart_C034",
+    "name": "格上 GoSmart 台北汐止站",
+    "address": "新北市汐止區大同路一段199號(裕信NISSAN汐止服務廠)",
+    "lat": 25.057229,
+    "lng": 121.633177
+  },
+  {
+    "id": "gosmart_C036",
+    "name": "格上 GoSmart 彰化金馬站",
+    "address": "彰化市金馬路三段221號(匯聯NISSAN彰化服務廠)",
+    "lat": 24.086322,
+    "lng": 120.532439
+  },
+  {
+    "id": "gosmart_C047",
+    "name": "格上 GoSmart 雲林斗南站",
+    "address": "雲林縣斗南鎮大業路106號(匯聯NISSAN斗南服務廠)",
+    "lat": 23.693547,
+    "lng": 120.475901
+  },
+  {
+    "id": "gosmart_C048",
+    "name": "格上 GoSmart 嘉義博賢站",
+    "address": "嘉義市世賢路二段505號(匯聯NISSAN博賢服務廠)",
+    "lat": 23.466818,
+    "lng": 120.426294
+  },
+  {
+    "id": "gosmart_C050",
+    "name": "格上 GoSmart 台中五權站",
+    "address": "台中市南屯區龍富路四段300號(裕民NISSAN五權西路服務廠)",
+    "lat": 24.147194,
+    "lng": 120.626337
+  },
+  {
+    "id": "gosmart_C051",
+    "name": "格上 GoSmart 台中大里站(新)",
+    "address": "台中市大里區國光路一段151號(裕民NISSAN大里服務廠)",
+    "lat": 24.098413,
+    "lng": 120.68289
+  },
+  {
+    "id": "gosmart_C052",
+    "name": "格上 GoSmart 台中南台中站",
+    "address": "台中市烏日區中山路一段37號(裕民NISSAN南台中服務廠)",
+    "lat": 24.110998,
+    "lng": 120.649192
+  },
+  {
+    "id": "gosmart_C053",
+    "name": "格上 GoSmart 南投埔里站",
+    "address": "南投縣埔里鎮南安路825號(裕民NISSAN埔里服務廠)",
+    "lat": 23.969479,
+    "lng": 120.952715
+  },
+  {
+    "id": "gosmart_C054",
+    "name": "格上 GoSmart 南投南崗站",
+    "address": "南投縣南投市南崗三路276號(裕民NISSAN南投服務廠)",
+    "lat": 23.936013,
+    "lng": 120.665443
+  },
+  {
+    "id": "gosmart_C055",
+    "name": "格上 GoSmart 南投竹山站",
+    "address": "南投縣竹山鎮大明路306號(裕民NISSAN竹山服務廠)",
+    "lat": 23.760352,
+    "lng": 120.684412
+  },
+  {
+    "id": "gosmart_C056",
+    "name": "格上 GoSmart 台北民權站",
+    "address": "台北市內湖區民權東路六段23號1樓(裕信NISSAN民權服務廠)",
+    "lat": 25.068672,
+    "lng": 121.58262
+  },
+  {
+    "id": "gosmart_C057",
+    "name": "格上 GoSmart 台北北投站",
+    "address": "台北市北投區大業路265號(裕信NISSAN北投服務廠)",
+    "lat": 25.126811,
+    "lng": 121.497453
+  },
+  {
+    "id": "gosmart_C058",
+    "name": "格上 GoSmart 台北濱江站(新)",
+    "address": "台北市中山區濱江街213號(裕信NISSAN濱江服務廠)",
+    "lat": 25.072806,
+    "lng": 121.540658
+  },
+  {
+    "id": "gosmart_C077",
+    "name": "格上 GoSmart 台南太子站",
+    "address": "台南市仁德區太子路472號(國通NISSAN太子服務廠)",
+    "lat": 22.991517,
+    "lng": 120.251583
+  },
+  {
+    "id": "gosmart_sub_35",
+    "name": "格上 GoSmart 士林中古車營業所",
+    "address": "台北市北投區承德路六段339號",
+    "lat": 25.106109,
+    "lng": 121.511447
+  },
+  {
+    "id": "gosmart_sub_S0001",
+    "name": "格上 GoSmart 中壢訂閲直營門市",
+    "address": "桃園市中壢區中華路二段167號",
+    "lat": 24.96533,
+    "lng": 121.240025
+  },
+  {
+    "id": "gosmart_sub_S0003",
+    "name": "格上 GoSmart 桃園南崁訂閱直營門市",
+    "address": "338台灣桃園市蘆竹區中正路87號",
+    "lat": 25.043144,
+    "lng": 121.291639
   }
 ]

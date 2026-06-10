@@ -1,168 +1,138 @@
 """
 GoSmart (格上) 站點爬蟲
-使用 Playwright 開啟 GoSmart 網頁地圖，攔截站點資料 API 請求
+使用已發現的官方 API 取得所有短租與訂閱站點
 """
-import asyncio
 import json
-import re
-import sys
 import math
+import sys
+import urllib.error
+import urllib.request
 from pathlib import Path
-from playwright.async_api import async_playwright
+
+sys.stdout.reconfigure(encoding='utf-8')
 
 OUTPUT_FILE = Path(__file__).parent.parent / "data" / "gosmart_stations.json"
+API_GW = "https://gateway.api.car-plus.com.tw/"
 
-GOSMART_URLS = [
-    "https://www.gosmart.com.tw/",
-    "https://www.car-plus.com.tw/gosmart",
-    "https://gosmart.car-plus.com.tw/",
-]
-
-
-async def scrape_gosmart_stations() -> list[dict]:
-    all_stations = []
-    captured = []
-
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(
-            headless=True,
-            args=["--no-sandbox", "--disable-dev-shm-usage"]
-        )
-        context = await browser.new_context(
-            user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15",
-            viewport={"width": 390, "height": 844},
-            locale="zh-TW"
-        )
-        page = await context.new_page()
-
-        async def handle_response(response):
-            url = response.url
-            try:
-                ct = response.headers.get("content-type", "")
-                if "json" in ct:
-                    body = await response.body()
-                    text = body.decode("utf-8", errors="replace")
-                    if len(text) > 50 and ('"lat"' in text.lower() or '"latitude"' in text.lower() or '"hub"' in text.lower()):
-                        print(f"  [CAPTURED] {url[:80]}")
-                        captured.append({"url": url, "body": text})
-            except Exception:
-                pass
-
-        page.on("response", handle_response)
-
-        for url in GOSMART_URLS:
-            print(f"Trying: {url}")
-            try:
-                await page.goto(url, wait_until="networkidle", timeout=25000)
-                await asyncio.sleep(4)
-            except Exception as e:
-                print(f"  Error: {e}")
-                continue
-
-        for resp in captured:
-            stations = _parse_stations(resp["body"])
-            if stations:
-                print(f"  Parsed {len(stations)} from {resp['url'][:60]}")
-                all_stations.extend(stations)
-
-        await browser.close()
-
-    return _dedup(all_stations)
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15",
+    "Accept": "application/json",
+    "Referer": "https://www.car-plus.com.tw/",
+    "Origin": "https://www.car-plus.com.tw",
+}
 
 
-def _parse_stations(text: str) -> list[dict]:
-    """解析 GoSmart 站點資料"""
-    stations = []
+def fetch_api(path: str) -> list[dict]:
+    url = API_GW + path
+    print(f"呼叫 GoSmart API: {url}")
     try:
-        data = json.loads(text)
-    except Exception:
+        req = urllib.request.Request(url, headers=HEADERS)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read().decode("utf-8")).get("data", [])
+    except Exception as e:
+        print(f"  API 呼叫失敗: {e}")
         return []
 
-    def extract(obj, prefix=""):
-        if isinstance(obj, list):
-            for item in obj:
-                extract(item)
-        elif isinstance(obj, dict):
-            lat_keys = ["lat", "latitude", "Lat", "LAT", "hub_lat", "stationLat"]
-            lng_keys = ["lng", "lon", "longitude", "Lng", "LON", "hub_lng", "stationLng"]
-            name_keys = ["name", "Name", "hub_name", "stationName", "title", "hub_title"]
-            addr_keys = ["address", "Address", "addr", "hub_address", "stationAddress"]
-            id_keys = ["id", "Id", "hub_id", "stationId", "code"]
 
-            lat = next((obj[k] for k in lat_keys if k in obj), None)
-            lng = next((obj[k] for k in lng_keys if k in obj), None)
-
-            if lat is not None and lng is not None:
-                try:
-                    lat, lng = float(lat), float(lng)
-                    if 21.5 <= lat <= 25.5 and 119.0 <= lng <= 122.5:
-                        stations.append({
-                            "id": next((obj[k] for k in id_keys if k in obj), None),
-                            "name": str(next((obj[k] for k in name_keys if k in obj), "")),
-                            "address": str(next((obj[k] for k in addr_keys if k in obj), "")),
-                            "lat": lat,
-                            "lng": lng
-                        })
-                except (ValueError, TypeError):
-                    pass
-            else:
-                for v in obj.values():
-                    extract(v)
-
-    extract(data)
-    return stations
+def dist(a, b):
+    # 兩點間距離 (公尺)
+    R = 6371000
+    phi1, phi2 = math.radians(a["lat"]), math.radians(b["lat"])
+    dphi = math.radians(b["lat"] - a["lat"])
+    dlam = math.radians(b["lng"] - a["lng"])
+    x = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlam/2)**2
+    return 2 * R * math.asin(math.sqrt(x))
 
 
-def _dedup(stations):
-    seen = set()
-    out = []
-    for s in stations:
-        key = f"{s['lat']:.4f},{s['lng']:.4f}"
-        if key not in seen:
-            seen.add(key)
-            out.append(s)
-    return out
+def main():
+    print("=== GoSmart 站點爬蟲開始 ===\n")
 
+    # 1. 讀取現有資料
+    existing = []
+    if OUTPUT_FILE.exists():
+        try:
+            with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+        except Exception:
+            existing = []
+    print(f"現有站點: {len(existing)}")
 
-def merge_with_existing(new_stations: list[dict], existing_file: Path) -> list[dict]:
-    if existing_file.exists():
-        with open(existing_file, "r", encoding="utf-8") as f:
-            existing = json.load(f)
-    else:
-        existing = []
+    # 2. 獲取 API 資料
+    srental_list = fetch_api("common/srental/v1/station")
+    subscribe_list = fetch_api("common/subscribe/stations")
+    print(f"API 短租 (srental) 回傳: {len(srental_list)} 筆")
+    print(f"API 訂閱 (subscribe) 回傳: {len(subscribe_list)} 筆")
 
-    def dist(a, b):
-        R = 6371000
-        phi1, phi2 = math.radians(a["lat"]), math.radians(b["lat"])
-        dphi = math.radians(b["lat"] - a["lat"])
-        dlam = math.radians(b["lng"] - a["lng"])
-        x = math.sin(dphi/2)**2 + math.cos(phi1)*math.cos(phi2)*math.sin(dlam/2)**2
-        return 2 * R * math.asin(math.sqrt(x))
+    # 3. 標準化 API 資料
+    new_stations = []
 
+    # 短租
+    for s in srental_list:
+        code = s.get("stationCode")
+        name = s.get("stationName", "").strip()
+        addr = s.get("addr", "").strip()
+        lat = s.get("lat")
+        lng = s.get("lng")
+
+        if not lat or not lng or not name:
+            continue
+
+        new_stations.append({
+            "id": f"gosmart_{code}",
+            "name": f"格上 GoSmart {name}" if not name.startswith("格上") else name,
+            "address": addr,
+            "lat": float(lat),
+            "lng": float(lng)
+        })
+
+    # 訂閱
+    for s in subscribe_list:
+        code = s.get("stationCode")
+        name = s.get("stationName", "").strip()
+        addr = s.get("addr", "").strip()
+        lat = s.get("lat")
+        lng = s.get("lng")
+
+        if not lat or not lng or not name:
+            continue
+
+        new_stations.append({
+            "id": f"gosmart_sub_{code}",
+            "name": f"格上 GoSmart {name}" if not name.startswith("格上") else name,
+            "address": addr,
+            "lat": float(lat),
+            "lng": float(lng)
+        })
+
+    print(f"標準化後共 {len(new_stations)} 個候選站點")
+
+    # 4. 合併（若距離小於 100m 視為同一個站點）
+    merged = list(existing)
     added = 0
+
     for ns in new_stations:
-        if not any(dist(ns, es) < 150 for es in existing):
-            existing.append(ns)
+        dup = False
+        for es in merged:
+            if dist(ns, es) < 100:
+                dup = True
+                # 更新地址與座標
+                es["lat"] = ns["lat"]
+                es["lng"] = ns["lng"]
+                if not es.get("address") and ns.get("address"):
+                    es["address"] = ns["address"]
+                break
+        if not dup:
+            merged.append(ns)
             added += 1
 
-    print(f"  新增 {added} 個 GoSmart 站點")
-    return existing
+    print(f"合併完成：新增 {added} 個站點，總計 {len(merged)} 個站點")
 
+    # 5. 儲存
+    with open(OUTPUT_FILE, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(merged, f, ensure_ascii=False, indent=2)
 
-async def main():
-    print("=== GoSmart 站點爬蟲開始 ===\n")
-    stations = await scrape_gosmart_stations()
-    print(f"\n爬蟲取得 {len(stations)} 個站點")
-
-    if stations:
-        merged = merge_with_existing(stations, OUTPUT_FILE)
-        with open(OUTPUT_FILE, "w", encoding="utf-8", newline="\n") as f:
-            json.dump(merged, f, ensure_ascii=False, indent=2)
-        print(f"儲存完成：{len(merged)} 個站點")
-    else:
-        print("未取得任何站點（GoSmart 可能從此地區無法訪問）")
-        # 不 exit(1)，GoSmart 無法訪問是已知問題
+    print(f"\n✅ 儲存完成：{len(merged)} 個站點 → {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

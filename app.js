@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const map = L.map('map', {
     zoomControl: false,
     minZoom: 7,
-    maxZoom: 18
+    maxZoom: 18,
+    preferCanvas: true       // 啟用 Canvas 渲染，大幅提升多邊形與線段的滑動流暢度
   }).setView([25.045, 121.545], 11); // Centered on Taipei comparison view
 
   L.control.zoom({ position: 'topright' }).addTo(map);
@@ -41,8 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
     chunkedLoading: true,
     chunkInterval: 100,       // 每 100ms 處理一批
     chunkDelay: 50,           // 每批之間休息 50ms，讓主線程喘氣
-    // animate 關掉可以減少 zoom 時的 layout thrashing
-    animate: true,
+    // animate 關掉可以減少 zoom 時的 layout thrashing，手機滑動更順暢
+    animate: false,
     animateAddingMarkers: false, // 加 marker 不播動畫（省 GPU）
     iconCreateFunction: function(cluster) {
       const count = cluster.getChildCount();
@@ -62,12 +63,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (_zoomRafId) cancelAnimationFrame(_zoomRafId);
     _zoomRafId = requestAnimationFrame(() => {
       const zoom = map.getZoom();
+      
+      // 1. 管理 Marker Cluster
       if (zoom <= 9) {
         if (map.hasLayer(markerCluster)) map.removeLayer(markerCluster);
-        if (map.hasLayer(layers.nearby))  map.removeLayer(layers.nearby);
       } else {
         if (!map.hasLayer(markerCluster)) map.addLayer(markerCluster);
-        if (toggleNearby.checked && !map.hasLayer(layers.nearby)) map.addLayer(layers.nearby);
+      }
+      
+      // 2. 管理 Nearby 鄰近連線
+      if (zoom <= 9 || !toggleNearby.checked) {
+        if (map.hasLayer(layers.nearby)) map.removeLayer(layers.nearby);
+      } else {
+        if (!map.hasLayer(layers.nearby)) map.addLayer(layers.nearby);
+      }
+
+      // 3. 管理捷運圖層 (只在 zoom >= 12 才顯示，減少低倍率時的效能損耗)
+      if (zoom < 12) {
+        if (map.hasLayer(layers.metro)) map.removeLayer(layers.metro);
+      } else {
+        if (!map.hasLayer(layers.metro)) map.addLayer(layers.metro);
       }
     });
   }
@@ -780,25 +795,25 @@ document.addEventListener('DOMContentLoaded', () => {
       name: '和雲 iRent',
       webUrl: 'https://www.easyrent.com.tw/irent/web/',
       androidPackage: 'com.cht.easyrent.irent',         // 已修正（舊：com.easyrent.easyrent）
-      androidScheme: 'intent://main#Intent;scheme=irent;package=com.cht.easyrent.irent;end',
       iosAppId: '929007421',
-      iosStoreUrl: 'https://apps.apple.com/tw/app/irent/id929007421'
+      iosStoreUrl: 'https://apps.apple.com/tw/app/irent/id929007421',
+      scheme: 'easyrent://'
     },
     gosmart: {
       name: '格上 GoSmart',
       webUrl: 'https://www.car-plus.com.tw/',
-      androidPackage: 'tw.com.carplus.gosmart',          // 已修正（舊：com.carplus.gosmart）
-      androidScheme: 'intent://main#Intent;scheme=gosmart;package=tw.com.carplus.gosmart;end',
-      iosAppId: '1500552794',
-      iosStoreUrl: 'https://apps.apple.com/tw/app/id1500552794'
+      androidPackage: 'com.carplus.gosmart',             // 已修正（舊：tw.com.carplus.gosmart）
+      iosAppId: '1527633276',                            // 已修正（舊：1500552794）
+      iosStoreUrl: 'https://apps.apple.com/tw/app/%E6%A0%BC%E4%B8%8AgoSmart/id1527633276',
+      scheme: 'gosmart://'
     },
     uride: {
       name: '中租 URiDE',
       webUrl: 'https://www.uridego.com.tw/',
       androidPackage: 'tw.com.chailease.android.shareCar', // 已修正（舊：tw.com.chailease.uride）
-      androidScheme: 'intent://main#Intent;scheme=uride;package=tw.com.chailease.android.shareCar;end',
       iosAppId: '6471373507',
-      iosStoreUrl: 'https://apps.apple.com/tw/app/uride/id6471373507'
+      iosStoreUrl: 'https://apps.apple.com/tw/app/uride/id6471373507',
+      scheme: 'uride://'
     }
   };
 
@@ -817,35 +832,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     webLink.href = cfg.webUrl;
 
-    if (isAndroid) {
-      // Android：使用 intent:// scheme 直接喚醒已安裝的 App
-      // fallbackUrl 確保沒裝的話自動跳 Play Store
-      const playUrl  = `https://play.google.com/store/apps/details?id=${cfg.androidPackage}`;
-      const intentUrl = `intent://open#Intent;scheme=${brand};package=${cfg.androidPackage};S.browser_fallback_url=${encodeURIComponent(playUrl)};end`;
+    let storeUrl = '';
+    if (isIOS) {
+      storeUrl = cfg.iosStoreUrl;
+    } else {
+      storeUrl = `https://play.google.com/store/apps/details?id=${cfg.androidPackage}`;
+    }
 
-      storeLink.href = intentUrl;
-      // 更新說明文字讓使用者更清楚
-      const storeStrong = storeLink.querySelector('strong');
-      const storeSpan   = storeLink.querySelector('span');
+    storeLink.href = storeUrl;
+
+    // 更新說明文字讓使用者更清楚
+    const storeStrong = storeLink.querySelector('strong');
+    const storeSpan   = storeLink.querySelector('span');
+
+    if (isAndroid) {
       if (storeStrong) storeStrong.textContent = '開啟 App 或前往 Google Play 📱';
       if (storeSpan)   storeSpan.textContent   = '已安裝者直接開啟，未安裝者跳至 Play Store 下載';
-
     } else if (isIOS) {
-      // iOS：直接跳 App Store（iOS 系統內建會自動處理「開啟 App」彈窗）
-      storeLink.href = cfg.iosStoreUrl;
-      const storeStrong = storeLink.querySelector('strong');
-      const storeSpan   = storeLink.querySelector('span');
       if (storeStrong) storeStrong.textContent = '前往 App Store 下載或開啟 📥';
       if (storeSpan)   storeSpan.textContent   = '已安裝者可直接點擊「開啟」啟動 App';
-
     } else {
-      // 電腦瀏覽器：給 Play Store 連結
-      storeLink.href = `https://play.google.com/store/apps/details?id=${cfg.androidPackage}`;
-      const storeStrong = storeLink.querySelector('strong');
-      const storeSpan   = storeLink.querySelector('span');
       if (storeStrong) storeStrong.textContent = '前往 App 商店 📥';
       if (storeSpan)   storeSpan.textContent   = '手機掃描下載或在商店搜尋 App';
     }
+
+    // 當點擊前往商店按鈕時，嘗試喚醒 App
+    storeLink.onclick = function(e) {
+      if (isAndroid || isIOS) {
+        e.preventDefault(); // 阻止預設開啟 Store 網頁行為
+        
+        // 1. 嘗試透過 Custom URL Scheme 喚醒 App
+        const start = Date.now();
+        const appUri = cfg.scheme;
+        
+        // 建立隱藏的 iframe 嘗試載入 Scheme（可避免直接跳轉失敗的報錯頁面）
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = appUri;
+        document.body.appendChild(iframe);
+        
+        // 2000ms 後移除 iframe
+        setTimeout(() => {
+          if (iframe.parentNode) {
+            document.body.removeChild(iframe);
+          }
+        }, 2000);
+        
+        // 2. 嘗試透過 window.location.href 輔助開啟
+        window.location.href = appUri;
+
+        // 3. 設定延遲計時器：如果 App 沒有開啟（頁面沒有失去焦點，時間差很小），則導向 App 商店
+        setTimeout(() => {
+          // 如果 App 有成功打開，瀏覽器會轉為背景，Date.now() - start 會被暫停，回到前台時時間差會遠大於 1500ms
+          // 如果 App 未安裝或沒打開，時間差會大約等於 1500ms，此時執行導向商店
+          if (Date.now() - start < 2200) {
+            window.location.href = storeUrl;
+          }
+        }, 1500);
+      }
+    };
 
     // Show modal
     const modal = document.getElementById('app-launcher-modal');
