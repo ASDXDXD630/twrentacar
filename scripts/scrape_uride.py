@@ -88,15 +88,33 @@ def merge_with_existing(new_stations: list[dict], existing_file: Path) -> list[d
     else:
         existing = []
 
-    added = 0
-    for ns in new_stations:
-        # 檢查是否已存在（100m 內）
-        if not any(dist(ns, es) < 100 for es in existing):
-            existing.append(ns)
-            added += 1
+    # 使用 ID 作為唯一鍵來建檔，避免重複 ID
+    existing_by_id = {}
+    for s in existing:
+        if s.get("id"):
+            existing_by_id[s["id"]] = s
 
-    print(f"  新增 {added} 個 URiDE 站點（共 {len(existing)} 個）")
-    return existing
+    added = 0
+    updated = 0
+    for ns in new_stations:
+        ns_id = ns["id"]
+        if ns_id in existing_by_id:
+            # 如果 ID 存在，檢查是否有欄位更新
+            es = existing_by_id[ns_id]
+            if (es.get("name") != ns.get("name") or 
+                es.get("address") != ns.get("address") or 
+                es.get("lat") != ns.get("lat") or 
+                es.get("lng") != ns.get("lng")):
+                existing_by_id[ns_id] = ns
+                updated += 1
+        else:
+            # 如果是新 ID，檢查 100m 內是否已有其他站點（避免物理位置重複，但基本上 ID 不同即為新據點）
+            if not any(dist(ns, es) < 100 for es in existing_by_id.values()):
+                existing_by_id[ns_id] = ns
+                added += 1
+
+    print(f"  新增 {added} 個，更新 {updated} 個 URiDE 站點（共 {len(existing_by_id)} 個）")
+    return list(existing_by_id.values())
 
 
 def main():
