@@ -1,4 +1,4 @@
-const CACHE_NAME = "carsharing-map-20260610"; // bumped: URiDE +5 stations, auto-update scripts added 2026-06-10
+const CACHE_NAME = "carsharing-map-20261007"; // bumped: switch basemap to OSM to fix Carto API Key Required issue
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -54,8 +54,8 @@ self.addEventListener("fetch", event => {
 
   const url = new URL(event.request.url);
 
-  // For Leaflet tiles (from cartocdn.com), use Cache-First to save mobile data
-  if (url.hostname.includes("basemaps.cartocdn.com")) {
+  // For Leaflet tiles (OpenStreetMap), use Cache-First to save mobile data
+  if (url.hostname.includes("tile.openstreetmap.org") || url.hostname.includes("basemaps.cartocdn.com")) {
     event.respondWith(
       caches.match(event.request).then(cachedResponse => {
         if (cachedResponse) {

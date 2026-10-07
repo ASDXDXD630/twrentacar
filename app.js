@@ -22,11 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   L.control.zoom({ position: 'topright' }).addTo(map);
 
-  // CartoDB Voyager Tile Layer
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20,
+  // OpenStreetMap Tile Layer (Free & Open Source, No API Key Required)
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
     keepBuffer: 4,          // 預載周圍 4 格 tile，滑動時不閃白
     updateWhenIdle: false,  // 持續滑動時也更新 tile（更順暢）
     updateWhenZooming: false // zoom 動畫期間不重載 tile
