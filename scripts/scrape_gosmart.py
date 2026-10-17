@@ -106,26 +106,40 @@ def main():
 
     print(f"標準化後共 {len(new_stations)} 個候選站點")
 
-    # 4. 合併（若距離小於 100m 視為同一個站點）
+    # 4. 合併（優先以 ID 比對更新，若 ID 不同但距離小於 100m 亦視為同一個站點）
     merged = list(existing)
+    by_id = {s["id"]: s for s in merged if s.get("id")}
     added = 0
+    updated = 0
 
     for ns in new_stations:
+        ns_id = ns.get("id")
+        if ns_id and ns_id in by_id:
+            es = by_id[ns_id]
+            es["name"] = ns["name"]
+            es["lat"] = ns["lat"]
+            es["lng"] = ns["lng"]
+            if ns.get("address"):
+                es["address"] = ns["address"]
+            updated += 1
+            continue
+
         dup = False
         for es in merged:
             if dist(ns, es) < 100:
                 dup = True
-                # 更新地址與座標
                 es["lat"] = ns["lat"]
                 es["lng"] = ns["lng"]
-                if not es.get("address") and ns.get("address"):
+                if ns.get("address"):
                     es["address"] = ns["address"]
                 break
         if not dup:
             merged.append(ns)
+            if ns_id:
+                by_id[ns_id] = ns
             added += 1
 
-    print(f"合併完成：新增 {added} 個站點，總計 {len(merged)} 個站點")
+    print(f"合併完成：新增 {added} 個站點，更新 {updated} 個站點，總計 {len(merged)} 個站點")
 
     # 5. 儲存
     with open(OUTPUT_FILE, "w", encoding="utf-8", newline="\n") as f:

@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     preferCanvas: true       // 啟用 Canvas 渲染，大幅提升多邊形與線段的滑動流暢度
   }).setView([25.045, 121.545], 11); // Centered on Taipei comparison view
 
-  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.control.zoom({ position: 'topleft' }).addTo(map);
 
   // OpenStreetMap Tile Layer (Free & Open Source, No API Key Required)
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -57,11 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle zoom-based cluster and line visibility
   // 用 requestAnimationFrame 包住，確保在瀏覽器畫完一幀後才改 DOM，避免 layout thrashing
+  const mapEl = document.getElementById('map');
   let _zoomRafId = null;
   function handleZoomLevels() {
     if (_zoomRafId) cancelAnimationFrame(_zoomRafId);
     _zoomRafId = requestAnimationFrame(() => {
       const zoom = map.getZoom();
+
+      // 0. 同步設定 #map 的縮放等級 CSS class，啟用 GPU 省電模式（縮小圓點與關閉動畫）
+      if (mapEl) {
+        mapEl.classList.toggle('zoom-low', zoom <= 9);
+        mapEl.classList.toggle('zoom-medium', zoom >= 10 && zoom <= 12);
+      }
       
       // 1. 管理 Marker Cluster
       if (zoom <= 9) {
@@ -130,6 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statTotal = document.getElementById('stat-total');
   const statURide = document.getElementById('stat-uride');
   const statGoSmart = document.getElementById('stat-gosmart');
+  const statIRent = document.getElementById('stat-irent');
   const statZones = document.getElementById('stat-zones');
 
   // Quick Location Buttons
@@ -138,17 +146,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCentral = document.getElementById('zoom-central');
   const btnSouth = document.getElementById('zoom-south');
 
-  // Mobile Drawer Toggle UI Elements & Listeners
+  // Drawer Toggle UI Elements & Listeners
   const menuToggleBtn = document.getElementById('menu-toggle-btn');
+  const closeSidebarBtn = document.getElementById('close-sidebar-btn');
   const sidebarPanel = document.getElementById('sidebar-panel');
   const sidebarOverlay = document.getElementById('sidebar-overlay');
 
   function openMobileSidebar() {
+    if (!sidebarPanel || !sidebarOverlay) return;
     sidebarPanel.classList.add('active');
     sidebarOverlay.classList.add('active');
   }
 
   function closeMobileSidebar() {
+    if (!sidebarPanel || !sidebarOverlay) return;
     sidebarPanel.classList.remove('active');
     sidebarOverlay.classList.remove('active');
   }
@@ -157,6 +168,52 @@ document.addEventListener('DOMContentLoaded', () => {
     menuToggleBtn.addEventListener('click', openMobileSidebar);
     sidebarOverlay.addEventListener('click', closeMobileSidebar);
   }
+  if (closeSidebarBtn) {
+    closeSidebarBtn.addEventListener('click', closeMobileSidebar);
+  }
+
+  // 支援 Escape 鍵關閉側邊欄與彈窗
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMobileSidebar();
+      const modal = document.getElementById('app-launcher-modal');
+      if (modal) modal.classList.remove('active');
+    }
+  });
+
+  // 共用 L.divIcon 實例快取（避免每次篩選重建數千個物件）
+  const SHARED_ICONS = {
+    uride: L.divIcon({
+      className: 'glow-marker brand-uride',
+      html: '<div class="marker-dot"></div><div class="marker-pulse"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    }),
+    gosmart: L.divIcon({
+      className: 'glow-marker brand-gosmart',
+      html: '<div class="marker-dot"></div><div class="marker-pulse"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    }),
+    irent: L.divIcon({
+      className: 'glow-marker brand-irent',
+      html: '<div class="marker-dot"></div><div class="marker-pulse"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    }),
+    nearby: L.divIcon({
+      className: 'glow-marker brand-nearby',
+      html: '<div class="marker-dot"></div><div class="marker-pulse"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    }),
+    metro: L.divIcon({
+      className: 'metro-station-marker',
+      html: '<i class="fa-solid fa-train-subway metro-icon-mrt"></i>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    })
+  };
 
   // ==========================================================================
   // 4. Distance Math (Haversine Formula)
@@ -235,21 +292,40 @@ document.addEventListener('DOMContentLoaded', () => {
     nearbyLinesData = [];
     const processedPairs = new Set();
 
-    // 1. Initial double-loop to gather all cross-brand proximities
-    for (let i = 0; i < allStations.length; i++) {
-      for (let j = i + 1; j < allStations.length; j++) {
-        const s1 = allStations[i];
-        const s2 = allStations[j];
+    // 1. 空間網格索引 (Spatial Grid Index)：將 O(N^2) ~350萬次運算降至 O(N)
+    // 0.0025 度約為 250~275 公尺，只需檢查自身與周圍 8 個網格即可涵蓋所有 <= 200m 的點
+    const CELL_SIZE = 0.0025;
+    const grid = new Map();
 
-        if (s1.brand !== s2.brand) {
-          const dist = getDistance(s1.lat, s1.lng, s2.lat, s2.lng);
-          if (dist <= 200) {
-            s1.nearbyStations.push({ station: s2, dist: dist });
-            s2.nearbyStations.push({ station: s1, dist: dist });
+    allStations.forEach((s, idx) => {
+      s._idx = idx;
+      const gx = Math.floor(s.lat / CELL_SIZE);
+      const gy = Math.floor(s.lng / CELL_SIZE);
+      const key = `${gx}_${gy}`;
+      if (!grid.has(key)) grid.set(key, []);
+      grid.get(key).push(s);
+    });
+
+    allStations.forEach(s1 => {
+      const gx = Math.floor(s1.lat / CELL_SIZE);
+      const gy = Math.floor(s1.lng / CELL_SIZE);
+
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          const cell = grid.get(`${gx + dx}_${gy + dy}`);
+          if (!cell) continue;
+          for (let k = 0; k < cell.length; k++) {
+            const s2 = cell[k];
+            if (s2._idx <= s1._idx || s1.brand === s2.brand) continue;
+            const dist = getDistance(s1.lat, s1.lng, s2.lat, s2.lng);
+            if (dist <= 200) {
+              s1.nearbyStations.push({ station: s2, dist: dist });
+              s2.nearbyStations.push({ station: s1, dist: dist });
+            }
           }
         }
       }
-    }
+    });
 
     // 2. Sort and cap nearby list to the 3 closest stations for EACH station
     allStations.forEach(s => {
@@ -278,27 +354,39 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function shouldShowStation(s) {
-    if (toggleNearby.checked && s.isNearby) return true;
-    if (s.brand === 'uride') return toggleURide.checked;
-    if (s.brand === 'gosmart') return toggleGoSmart.checked;
-    if (s.brand === 'irent') return toggleiRent.checked;
+  function isBrandChecked(brand) {
+    if (brand === 'uride') return toggleURide.checked;
+    if (brand === 'gosmart') return toggleGoSmart.checked;
+    if (brand === 'irent') return toggleiRent.checked;
     return false;
   }
 
+  function shouldShowStation(s) {
+    const anyBrandChecked = toggleURide.checked || toggleGoSmart.checked || toggleiRent.checked;
+    // 若使用者將三個品牌都取消勾選、僅勾選「200m 雙品牌交會區」，則單獨顯示所有交會站點
+    if (!anyBrandChecked && toggleNearby.checked) {
+      return s.isNearby;
+    }
+    return isBrandChecked(s.brand);
+  }
+
   function updateStationVisibility() {
+    const toAdd = [];
+    const toRemove = [];
     allStations.forEach(s => {
       const m = markerLookup[`${s.brand}_${s.id}`];
       if (m) {
         const isCurrentlyOnMap = markerCluster.hasLayer(m);
         const shouldBeOnMap = shouldShowStation(s);
         if (shouldBeOnMap && !isCurrentlyOnMap) {
-          markerCluster.addLayer(m);
+          toAdd.push(m);
         } else if (!shouldBeOnMap && isCurrentlyOnMap) {
-          markerCluster.removeLayer(m);
+          toRemove.push(m);
         }
       }
     });
+    if (toRemove.length > 0) markerCluster.removeLayers(toRemove);
+    if (toAdd.length > 0) markerCluster.addLayers(toAdd);
     updateMarkerIcons();
     drawNearbyLines();
     renderStationsList();
@@ -326,6 +414,14 @@ document.addEventListener('DOMContentLoaded', () => {
     return cloned;
   }
 
+  function cleanStationShortName(name) {
+    return name
+      .replace(/^格上\s*GoSmart\s*/i, '')
+      .replace(/^URiDE\s*/i, '')
+      .replace(/^iRent\s*/i, '')
+      .trim();
+  }
+
   function initMapElements() {
     // Clear existing layer groups & clusters
     layers.zones.clearLayers();
@@ -349,8 +445,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (zoneData.Overlap) zoneData.Overlap.forEach(z => holes.push(enforceWinding(z.coords, 'CCW')));
 
     // Dark cutout polygon layer (Non-interactive)
-    // Using non-overlapping holes with explicit winding orientation and fillRule: 'evenodd'
-    // guarantees correct SVG cutout hole behavior across all browsers (solving the black center bug in Taipei!)
     L.polygon([outerBoundary, ...holes], {
       color: 'none',
       stroke: false,
@@ -370,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
           weight: 1.5,
           opacity: 0.6,
           dashArray: '3, 4',
-          interactive: false // Disabled click interaction to prevent accidental popups
+          interactive: false
         }).addTo(layers.zones);
       });
     }
@@ -384,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
           weight: 1.5,
           opacity: 0.6,
           dashArray: '3, 4',
-          interactive: false // Disabled click interaction to prevent accidental popups
+          interactive: false
         }).addTo(layers.zones);
       });
     }
@@ -398,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
           weight: 1.8,
           opacity: 0.7,
           dashArray: '3, 4',
-          interactive: false // Disabled click interaction to prevent accidental popups
+          interactive: false
         }).addTo(layers.zones);
       });
     }
@@ -410,22 +504,15 @@ document.addEventListener('DOMContentLoaded', () => {
         weight: 3.5,
         opacity: 0.72,
         className: 'metro-route-line',
-        interactive: false // Non-interactive to prevent interference
+        interactive: false
       }).addTo(layers.metro);
     });
 
     // C. Draw Taipei Metro Stations (Nodes)
     metroStations.forEach(st => {
-      const metroIcon = L.divIcon({
-        className: 'metro-station-marker',
-        html: '<i class="fa-solid fa-train-subway metro-icon-mrt"></i>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-      });
-
       L.marker([st.lat, st.lng], { 
-        icon: metroIcon,
-        interactive: false // Fully static, non-clickable
+        icon: SHARED_ICONS.metro,
+        interactive: false
       }).addTo(layers.metro);
     });
 
@@ -433,24 +520,14 @@ document.addEventListener('DOMContentLoaded', () => {
     drawNearbyLines();
 
     // E. Add Physical Station Markers to the Cluster Group
+    const initialMarkers = [];
     allStations.forEach(s => {
-      // Icon class definition
-      let iconClass = `glow-marker brand-${s.brand}`;
-      if (s.isNearby && toggleNearby.checked) {
-        iconClass = 'glow-marker brand-nearby';
-      }
-
-      const icon = L.divIcon({
-        className: iconClass,
-        html: '<div class="marker-dot"></div><div class="marker-pulse"></div>',
-        iconSize: [14, 14],
-        iconAnchor: [7, 7]
-      });
+      const icon = (s.isNearby && toggleNearby.checked) ? SHARED_ICONS.nearby : SHARED_ICONS[s.brand];
 
       let brandLabel = '';
-      if (s.brand === 'uride') brandLabel = '<span class=\"popup-brand-badge uride\">URiDE 恣意租還</span>';
-      if (s.brand === 'gosmart') brandLabel = '<span class=\"popup-brand-badge gosmart\">GoSmart 隨還特約場</span>';
-      if (s.brand === 'irent') brandLabel = '<span class=\"popup-brand-badge irent\">iRent 隨還特約場</span>';
+      if (s.brand === 'uride') brandLabel = '<span class="popup-brand-badge uride">URiDE 恣意租還</span>';
+      if (s.brand === 'gosmart') brandLabel = '<span class="popup-brand-badge gosmart">GoSmart 隨還特約場</span>';
+      if (s.brand === 'irent') brandLabel = '<span class="popup-brand-badge irent">iRent 隨還特約場</span>';
 
       let nearbyInfoHtml = '';
       if (s.isNearby) {
@@ -462,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const other = ns.station;
                 const brandName = other.brand === 'uride' ? 'URiDE' : (other.brand === 'gosmart' ? 'GoSmart' : 'iRent');
                 return `<li style="font-size: 10px; color: var(--text-secondary); margin-bottom: 2px;">
-                  • <strong>${brandName}</strong> [${other.name.replace('URiDE', '').replace('iRent', '')}] &rarr; <strong>${Math.round(ns.dist)}公尺</strong>
+                  • <strong>${brandName}</strong> [${cleanStationShortName(other.name)}] &rarr; <strong>${Math.round(ns.dist)}公尺</strong>
                 </li>`;
               }).join('')}
             </ul>
@@ -470,31 +547,39 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
 
+      const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}`;
+
       const popupContent = `
         <div class="custom-popup-content">
           ${brandLabel}
           ${s.isNearby ? '<span class="popup-brand-badge nearby" style="margin-left: 6px;"><i class="fa-solid fa-arrows-left-right"></i> 交會點</span>' : ''}
           <h4>${s.name}</h4>
-          <p><i class="fa-solid fa-location-dot"></i>${s.address}</p>
+          <p><i class="fa-solid fa-location-dot"></i>${s.address || '無詳細地址資料'}</p>
           <p><i class="fa-solid fa-compass"></i>${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</p>
           ${nearbyInfoHtml}
-          <div class="popup-action-btn-container" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 10px;">
-            <button class="rent-btn rent-${s.brand}" onclick="triggerRentApp('${s.brand}')">
+          <div class="popup-action-btn-container" style="margin-top: 12px; border-top: 1px solid var(--border-light); padding-top: 10px; display: flex; gap: 8px;">
+            <button class="rent-btn rent-${s.brand}" style="flex: 1;" onclick="triggerRentApp('${s.brand}')">
               <i class="fa-solid fa-car-side"></i> 租車去
             </button>
+            <a class="nav-btn" href="${gmapsUrl}" target="_blank" rel="noopener noreferrer" title="開啟 Google Maps 導航">
+              <i class="fa-solid fa-diamond-turn-right"></i> 導航
+            </a>
           </div>
         </div>
       `;
 
       const marker = L.marker([s.lat, s.lng], { icon: icon }).bindPopup(popupContent);
 
-      // Evaluate active state checkbox to decide if adding to cluster
       if (shouldShowStation(s)) {
-        markerCluster.addLayer(marker);
+        initialMarkers.push(marker);
       }
 
       markerLookup[`${s.brand}_${s.id}`] = marker;
     });
+
+    if (initialMarkers.length > 0) {
+      markerCluster.addLayers(initialMarkers);
+    }
   }
 
   function drawNearbyLines() {
@@ -506,10 +591,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const showS2 = shouldShowStation(line.s2);
 
       if (showS1 && showS2) {
+        // 注意：preferCanvas 模式下 HTML5 Canvas 不支援 CSS 變數 var(...)，必須使用實際色碼 #e830f8
         L.polyline(line.coords, {
-          color: 'var(--color-nearby)',
+          color: '#e830f8',
           weight: 1.8,
-          opacity: 0.7,
+          opacity: 0.75,
           dashArray: '4, 4',
           className: 'nearby-link-line'
         }).bindPopup(`
@@ -527,21 +613,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateMarkerIcons() {
+    const showNearbyGlow = toggleNearby.checked;
     allStations.forEach(s => {
+      if (!s.isNearby) return; // 只有交會站點的圖示會隨 toggleNearby 改變，大幅節省 DOM 操作
       const marker = markerLookup[`${s.brand}_${s.id}`];
       if (marker) {
-        let iconClass = `glow-marker brand-${s.brand}`;
-        if (s.isNearby && toggleNearby.checked) {
-          iconClass = 'glow-marker brand-nearby';
-        }
-        
-        const newIcon = L.divIcon({
-          className: iconClass,
-          html: '<div class="marker-dot"></div><div class="marker-pulse"></div>',
-          iconSize: [14, 14],
-          iconAnchor: [7, 7]
-        });
-        marker.setIcon(newIcon);
+        const targetIcon = showNearbyGlow ? SHARED_ICONS.nearby : SHARED_ICONS[s.brand];
+        marker.setIcon(targetIcon);
       }
     });
   }
@@ -554,62 +632,92 @@ document.addEventListener('DOMContentLoaded', () => {
     const gosmartCount = gosmartStations.length;
     const irentCount = irentStations.length;
 
-    statURide.textContent = urideCount;
-    statGoSmart.textContent = gosmartCount;
-    statTotal.textContent = urideCount + gosmartCount + irentCount;
+    if (statURide) statURide.textContent = urideCount;
+    if (statGoSmart) statGoSmart.textContent = gosmartCount;
+    if (statIRent) statIRent.textContent = irentCount;
+    if (statTotal) statTotal.textContent = urideCount + gosmartCount + irentCount;
     
     // Display total zones count in stats (Overlap + iRentOnly + GoSmartOnly)
     const zonesCount = (zoneData.iRentOnly?.length || 0) + (zoneData.GoSmartOnly?.length || 0) + (zoneData.Overlap?.length || 0);
-    statZones.textContent = zonesCount;
-    
-    const zonesLabel = statZones.previousElementSibling;
-    if (zonesLabel) {
-      zonesLabel.innerHTML = `<i class="fa-solid fa-draw-polygon" style="color: #ffffff"></i> 隨還營運邊界區域數`;
+    if (statZones) {
+      statZones.textContent = zonesCount;
+      const zonesLabel = statZones.previousElementSibling;
+      if (zonesLabel) {
+        zonesLabel.innerHTML = `<i class="fa-solid fa-draw-polygon" style="color: #ffffff"></i> 隨還營運邊界區域數`;
+      }
     }
   }
 
   // ==========================================================================
-  // 8. Sidebar List Render
+  // 8. Sidebar List Render (批次虛擬滾動渲染 + 多關鍵字搜尋)
   // ==========================================================================
+  const LIST_BATCH_SIZE = 80;
+  let currentFilteredStations = [];
+  let currentRenderedCount = 0;
+
+  function appendNextStationBatch() {
+    if (currentRenderedCount >= currentFilteredStations.length) return;
+    const fragment = document.createDocumentFragment();
+    const limit = Math.min(currentRenderedCount + LIST_BATCH_SIZE, currentFilteredStations.length);
+    for (let i = currentRenderedCount; i < limit; i++) {
+      fragment.appendChild(createStationListItem(currentFilteredStations[i]));
+    }
+    stationsListContainer.appendChild(fragment);
+    currentRenderedCount = limit;
+  }
+
+  stationsListContainer.addEventListener('scroll', () => {
+    if (stationsListContainer.scrollTop + stationsListContainer.clientHeight >= stationsListContainer.scrollHeight - 240) {
+      appendNextStationBatch();
+    }
+  }, { passive: true });
+
   function renderStationsList() {
-    const searchTerm = searchInput.value.trim().toLowerCase();
+    const rawSearch = searchInput.value.trim().toLowerCase();
+    const keywords = rawSearch ? rawSearch.split(/\s+/) : [];
     stationsListContainer.innerHTML = '';
+    stationsListContainer.scrollTop = 0;
 
-    const showURide = toggleURide.checked;
-    const showGoSmart = toggleGoSmart.checked;
-    const showiRent = toggleiRent.checked;
+    const filtered = [];
+    for (let i = 0; i < allStations.length; i++) {
+      const s = allStations[i];
+      if (!shouldShowStation(s)) continue;
 
-    let itemsRendered = 0;
+      if (keywords.length > 0) {
+        const haystack = `${s.name} ${s.address} ${s.brand}`.toLowerCase();
+        let allMatched = true;
+        for (let k = 0; k < keywords.length; k++) {
+          if (!haystack.includes(keywords[k])) {
+            allMatched = false;
+            break;
+          }
+        }
+        if (!allMatched) continue;
+      }
+      filtered.push(s);
+    }
 
-    const sortedStations = [...allStations].sort((a, b) => {
+    filtered.sort((a, b) => {
       if (a.isNearby && !b.isNearby) return -1;
       if (!a.isNearby && b.isNearby) return 1;
       return a.name.localeCompare(b.name, 'zh-Hant-TW');
     });
 
-    sortedStations.forEach(s => {
-      if (!shouldShowStation(s)) return;
+    currentFilteredStations = filtered;
+    currentRenderedCount = 0;
+    resultsCount.textContent = filtered.length;
 
-      const matchesSearch = s.name.toLowerCase().includes(searchTerm) || 
-                            s.address.toLowerCase().includes(searchTerm);
-      
-      if (!matchesSearch) return;
-
-      const item = createStationListItem(s);
-      stationsListContainer.appendChild(item);
-      itemsRendered++;
-    });
-
-    resultsCount.textContent = itemsRendered;
-
-    if (itemsRendered === 0) {
+    if (filtered.length === 0) {
       stationsListContainer.innerHTML = `
         <div class="list-placeholder">
           <i class="fa-solid fa-magnifying-glass-minus"></i>
           <span>無符合篩選條件的隨還據點</span>
         </div>
       `;
+      return;
     }
+
+    appendNextStationBatch();
   }
 
   function createStationListItem(station) {
@@ -637,7 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div class="station-item-address">
         <i class="fa-solid fa-location-dot"></i>
-        <span>${station.address}</span>
+        <span>${station.address || '無詳細地址資料'}</span>
       </div>
     `;
 
@@ -657,10 +765,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      // Auto-close sidebar drawer on mobile to show the map
-      if (window.innerWidth <= 768) {
-        closeMobileSidebar();
-      }
+      // Close sidebar drawer to show the map
+      closeMobileSidebar();
     });
 
     return card;

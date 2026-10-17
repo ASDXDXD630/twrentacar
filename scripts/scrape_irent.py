@@ -5,6 +5,7 @@ iRent 站點爬蟲 — 使用已發現的官方 API
 """
 import json
 import math
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -65,6 +66,8 @@ def fetch_all_irent_stations() -> list[dict]:
 
             name = str(s.get("STANAME", "")).strip()
             address = str(s.get("CITYADD", "")).strip()
+            # 清理官方 API 中偶發重複的縣市行政區前綴（例如「台北市中正區台北市中正區...」、「新竹市新竹市...」）
+            address = re.sub(r"^(.{3,6})\1+", r"\1", address)
             station_id = s.get("STARFNBR")
 
             if not name:

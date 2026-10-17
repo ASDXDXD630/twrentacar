@@ -126,6 +126,22 @@ body {
   color: var(--color-uride);
 }
 
+.sidebar-close-btn {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+}
+
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .subtitle {
   font-size: 11px;
   color: var(--text-secondary);
@@ -188,6 +204,24 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+}
+
+.stat-grid.stat-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-grid-3 .stat-card {
+  padding: 12px 10px;
+}
+
+.stat-grid-3 .stat-value {
+  font-size: 20px;
+}
+
+.stat-card.irent .stat-value {
+  color: var(--color-irent);
+  text-shadow: 0 0 10px var(--color-irent-glow);
 }
 
 .stat-card.uride .stat-value {
@@ -304,6 +338,10 @@ body {
 .irent-toggle input:checked + .custom-checkbox {
   background-color: var(--color-irent);
   box-shadow: 0 0 8px var(--color-irent-glow);
+}
+.nearby-toggle input:checked + .custom-checkbox {
+  background-color: var(--color-nearby);
+  box-shadow: 0 0 8px var(--color-nearby-glow);
 }
 
 .brand-toggle input:checked + .custom-checkbox i {
@@ -1042,6 +1080,36 @@ body {
   border: 1px solid var(--color-irent);
   color: var(--color-irent);
   box-shadow: 0 2px 8px var(--color-irent-glow);
+}
+
+.nav-btn {
+  width: 100%;
+  border: 1px solid var(--border-hover);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-1.5px);
+}
+
+/* Position Leaflet Zoom Control below top-left hamburger menu button to avoid overlapping */
+.leaflet-top.leaflet-left {
+  top: 68px !important;
+  left: 5px !important;
 }
 
 /* ==========================================================================
