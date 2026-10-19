@@ -1,4 +1,4 @@
-const CACHE_NAME = "carsharing-map-20261017"; // bumped: ARGON full audit & optimization release
+const CACHE_NAME = "carsharing-map-20261019"; // bumped: ARGON full audit & optimization release
 const STATIC_ASSETS = [
   "./",
   "./index.html",
