@@ -1,4 +1,4 @@
-const CACHE_NAME = "carsharing-map-20261024"; // bumped: update latest stations
+const CACHE_NAME = "carsharing-map-20261026"; // bumped: update latest stations
 const STATIC_ASSETS = [
   "./",
   "./index.html",
