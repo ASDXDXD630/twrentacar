@@ -32,11 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }).addTo(map);
 
   // Marker Cluster Group
+  // 修正：移除 disableClusteringAtZoom: 16 造成的 _maxZoom=15 假座標 Spiderfy 問題，
+  // 改用隨縮放層級動態縮小的 maxClusterRadius，並自訂 clusterclick 確保點擊聚合點時優先放大至真實地理座標位置。
   const markerCluster = L.markerClusterGroup({
-    maxClusterRadius: 50,
+    maxClusterRadius: function(zoom) {
+      if (zoom >= 16) return 2;   // zoom 16~18：僅座標完全重疊（<1公尺同場站）才聚合，其餘直接顯示真實位置
+      if (zoom === 15) return 18; // zoom 15：約 40 公尺內才聚合
+      if (zoom === 14) return 30;
+      return 45;
+    },
     showCoverageOnHover: false,
-    spiderfyOnMaxZoom: true,
-    disableClusteringAtZoom: 16,
+    spiderfyOnMaxZoom: false,
+    zoomToBoundsOnClick: false,
     // chunkedLoading: 分批把 marker 加入地圖，避免一次塞幾百個 DOM 凍住 UI
     chunkedLoading: true,
     chunkInterval: 100,       // 每 100ms 處理一批
@@ -54,6 +61,43 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   }).addTo(map);
+
+  // 點擊多站點聚合標誌（Cluster）時：
+  // 優先縮放地圖至子站點自然拆開的真實地理座標位置，避免在中低縮放層級觸發 Spiderfy 產生左右對稱的假位置落差
+  markerCluster.on('clusterclick', (e) => {
+    const cluster = e.layer;
+    let bottomCluster = cluster;
+    while (bottomCluster._childClusters && bottomCluster._childClusters.length === 1) {
+      bottomCluster = bottomCluster._childClusters[0];
+    }
+
+    const currentZoom = map.getZoom();
+    const maxZoom = map.getMaxZoom();
+
+    // 1. 若子站點在更高縮放層級可自然拆開為真實座標，直接縮放至該範圍顯示真實位置
+    if (bottomCluster._zoom < markerCluster._maxZoom) {
+      cluster.zoomToBounds({ padding: [45, 45] });
+      return;
+    }
+
+    // 2. 若兩站點座標完全相同（連在最大縮放層級也重疊），但目前尚未放大至最大層級，先放大至最大層級再展開
+    if (currentZoom < maxZoom) {
+      map.setView(cluster.getLatLng(), maxZoom);
+      setTimeout(() => {
+        const children = cluster.getAllChildMarkers();
+        if (children.length > 0) {
+          const visibleParent = markerCluster.getVisibleParent(children[0]);
+          if (visibleParent && typeof visibleParent.spiderfy === 'function') {
+            visibleParent.spiderfy();
+          }
+        }
+      }, 350);
+      return;
+    }
+
+    // 3. 已在最大縮放層級且座標完全重疊時，才原地微幅展開供點擊
+    cluster.spiderfy();
+  });
 
   // Handle zoom-based cluster and line visibility
   // 用 requestAnimationFrame 包住，確保在瀏覽器畫完一幀後才改 DOM，避免 layout thrashing

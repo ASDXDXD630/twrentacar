@@ -66,8 +66,12 @@ def fetch_all_irent_stations() -> list[dict]:
 
             name = str(s.get("STANAME", "")).strip()
             address = str(s.get("CITYADD", "")).strip()
-            # 清理官方 API 中偶發重複的縣市行政區前綴（例如「台北市中正區台北市中正區...」、「新竹市新竹市...」）
-            address = re.sub(r"^(.{3,6})\1+", r"\1", address)
+            # 清理官方 API 中偶發重複的縣市行政區前綴（含「台/臺」混用，例如「台東縣台東市臺東縣臺東市...」）
+            norm_addr = address.replace("臺", "台")
+            m_dup = re.match(r"^(.{3,6})\1+", norm_addr)
+            if m_dup:
+                keep_len = len(m_dup.group(1))
+                address = address[:keep_len] + address[m_dup.end():]
             station_id = s.get("STARFNBR")
 
             if not name:
