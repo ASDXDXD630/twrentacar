@@ -1,4 +1,4 @@
-const CACHE_NAME = "carsharing-map-20261102"; // bumped: fix cluster spiderfy position mismatch & update latest stations
+const CACHE_NAME = "carsharing-map-20261107"; // bumped: update latest stations (2026-11-07)
 const STATIC_ASSETS = [
   "./",
   "./index.html",
